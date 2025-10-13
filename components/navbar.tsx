@@ -32,24 +32,28 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
         {/* Top Area */}
         <div className="flex flex-col pt-2 pb-0">
           {/* Header with Menu and Toggle */}
-          <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} mb-6`}>
+          <div className="flex items-center justify-between mb-6">
             <button className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-colors">
               <Menu size={24} className="text-white" />
             </button>
             
-            {isExpanded && (
-              <>
-                <button 
-                  onClick={() => {
-                    setIsExpanded(false);
-                    setIsInboxOpen(false);
-                  }}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/5 transition-colors"
-                >
-                  <ChevronLeft size={16} className="text-white" />
-                </button>
-              </>
-            )}
+            <button 
+              onClick={() => {
+                if (isExpanded) {
+                  setIsExpanded(false);
+                  setIsInboxOpen(false);
+                } else {
+                  setIsExpanded(true);
+                }
+              }}
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/5 transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronLeft size={16} className="text-white" />
+              ) : (
+                <ChevronRight size={16} className="text-white" />
+              )}
+            </button>
           </div>
 
           {/* Search */}
@@ -206,20 +210,20 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
           {/* User Avatar */}
           <div className="py-2">
-            <div className={`bg-[#1c1f31] rounded-2xl p-2 ${isExpanded ? '' : 'flex justify-center'}`}>
+            <div className={`bg-[#1c1f31] rounded-2xl p-2 ${isExpanded ? '' : 'flex justify-center items-center'}`}>
               {isExpanded ? (
                 <div className="flex items-center gap-2">
-                  <div className="relative w-8 h-8 bg-[#eb1700] rounded-full flex items-center justify-center">
+                  <div className="relative w-8 h-8 flex-shrink-0 bg-[#eb1700] rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">A</span>
                     <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="text-white text-sm">Ana J.</p>
                   </div>
-                  <ChevronRight size={16} className="text-white" />
+                  <ChevronRight size={16} className="text-white flex-shrink-0" />
                 </div>
               ) : (
-                <div className="relative w-8 h-8 bg-[#eb1700] rounded-full flex items-center justify-center">
+                <div className="relative w-8 h-8 flex-shrink-0 bg-[#eb1700] rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-semibold">A</span>
                   <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
                 </div>
@@ -229,15 +233,6 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
         </div>
       </div>
 
-      {/* Expand Button (when collapsed) */}
-      {!isExpanded && (
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="absolute left-10 top-7 bg-[#161929] rounded-full w-6 h-6 flex items-center justify-center hover:bg-[#1c1f31] transition-colors shadow-lg border border-white/10"
-        >
-          <ChevronRight size={16} className="text-white" />
-        </button>
-      )}
     </div>
   );
 }
