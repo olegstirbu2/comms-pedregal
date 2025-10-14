@@ -12,6 +12,7 @@ const MOCK_CASES = [
     timestamp: 'Now',
     category: 'Missing Minor',
     message: 'Waiting for response...',
+    avatarUrl: 'https://i.pravatar.cc/150?img=5',
     avatarGradient: 'bg-gradient-to-r from-[#31b9c0] to-[#00838a]',
     avatarInitials: 'JA',
     isUnread: false,
@@ -24,10 +25,11 @@ const MOCK_CASES = [
     timestamp: '30s',
     category: 'Item Substitution',
     message: 'Red Bull Sugar Free 250ml (x4) is out of stock. We suggest Red Bull Original 250ml (x4) as a substitute.',
+    avatarUrl: 'https://i.pravatar.cc/150?img=28',
     avatarGradient: 'bg-purple-500',
     avatarInitials: 'EW',
     isUnread: true,
-    isSelected: true,
+    isSelected: false,
   },
   {
     id: 3,
@@ -36,6 +38,7 @@ const MOCK_CASES = [
     timestamp: '3m',
     category: 'Missing Items',
     message: null,
+    avatarUrl: 'https://i.pravatar.cc/150?img=12',
     avatarGradient: 'bg-[#111318]',
     avatarInitials: 'GO',
     isUnread: false,
@@ -43,7 +46,7 @@ const MOCK_CASES = [
   },
 ];
 
-export default function CaseInboxNav({ isOpen = true, onToggle }) {
+export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId }) {
   const [isExpanded, setIsExpanded] = useState(true); // true = expanded (272px), false = collapsed (56px)
   const [selectedFilter, setSelectedFilter] = useState('Open');
 
@@ -112,14 +115,15 @@ export default function CaseInboxNav({ isOpen = true, onToggle }) {
               <article
                 key={caseItem.id}
                 role="listitem"
+                onClick={() => onCaseSelect?.(caseItem)}
                 className={`
                   relative px-4 py-3 border-b border-[#e9eaec]
                   cursor-pointer hover:bg-gray-50 transition-colors
-                  ${caseItem.isSelected ? 'bg-[#f6f7f8]' : ''}
+                  ${selectedCaseId === caseItem.id ? 'bg-[#f6f7f8]' : ''}
                 `}
               >
                 {/* Selected indicator */}
-                {caseItem.isSelected && (
+                {selectedCaseId === caseItem.id && (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[5px] h-full bg-[#111318] rounded-l" />
                 )}
 
@@ -195,15 +199,18 @@ export default function CaseInboxNav({ isOpen = true, onToggle }) {
               <div
                 key={caseItem.id}
                 role="listitem"
-                onClick={handleChevronClick}
+                onClick={() => {
+                  handleChevronClick();
+                  onCaseSelect?.(caseItem);
+                }}
                 className={`
                   relative p-3 border-b border-[#e9eaec]
                   cursor-pointer hover:bg-gray-50 transition-colors
-                  ${caseItem.isSelected ? 'bg-[#f6f7f8]' : ''}
+                  ${selectedCaseId === caseItem.id || caseItem.isSelected ? 'bg-[#f6f7f8]' : ''}
                 `}
               >
                 {/* Selected indicator */}
-                {caseItem.isSelected && (
+                {(selectedCaseId === caseItem.id || caseItem.isSelected) && (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-[112px] bg-[#111318] rounded-l" />
                 )}
 
@@ -211,13 +218,17 @@ export default function CaseInboxNav({ isOpen = true, onToggle }) {
                 <div className="relative w-8 h-8 mx-auto">
                   <div
                     className={`
-                      w-8 h-8 rounded-full flex items-center justify-center
+                      w-8 h-8 rounded-full flex items-center justify-center overflow-hidden
                       ${caseItem.avatarGradient}
                       text-white text-xs font-semibold
                       border border-[#e9eaec]
                     `}
                   >
-                    {caseItem.avatarInitials}
+                    {caseItem.avatarUrl ? (
+                      <img src={caseItem.avatarUrl} alt={caseItem.name} className="w-full h-full object-cover" />
+                    ) : (
+                      caseItem.avatarInitials
+                    )}
                   </div>
 
                   {/* Unread badge */}

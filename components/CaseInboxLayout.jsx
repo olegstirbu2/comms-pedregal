@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, cloneElement } from 'react';
 import Navbar from './navbar';
 import CaseInboxNav from './CaseInboxNav';
 
 export default function CaseInboxLayout({ children }) {
   const [isCaseInboxOpen, setIsCaseInboxOpen] = useState(true);
+  const [selectedCase, setSelectedCase] = useState(null);
 
   const handleCaseInboxToggle = () => {
     setIsCaseInboxOpen(!isCaseInboxOpen);
@@ -13,6 +14,10 @@ export default function CaseInboxLayout({ children }) {
 
   const handleCaseInboxOpen = () => {
     setIsCaseInboxOpen(true);
+  };
+
+  const handleCaseSelect = (caseData) => {
+    setSelectedCase(caseData);
   };
 
   return (
@@ -24,11 +29,13 @@ export default function CaseInboxLayout({ children }) {
       <CaseInboxNav 
         isOpen={isCaseInboxOpen}
         onToggle={handleCaseInboxToggle}
+        onCaseSelect={handleCaseSelect}
+        selectedCaseId={selectedCase?.id}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-auto bg-gray-50">
-        {children}
+        {children && cloneElement(children, { selectedCase })}
       </main>
     </div>
   );
