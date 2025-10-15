@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Search, MessageSquare } from 'lucide-react';
 
 // Mock data for cases
@@ -49,28 +49,77 @@ const MOCK_CASES = [
 export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId }) {
   const [isExpanded, setIsExpanded] = useState(true); // true = expanded (272px), false = collapsed (56px)
   const [selectedFilter, setSelectedFilter] = useState('Open');
+  
+  // Resize state
+  const [inboxWidth, setInboxWidth] = useState(380); // Default width
+  const [isResizing, setIsResizing] = useState(false);
+  const inboxContainerRef = useRef(null);
 
   const handleChevronClick = () => {
     setIsExpanded(!isExpanded);
   };
+
+  // Resize handlers
+  const handleResizeStart = (e) => {
+    setIsResizing(true);
+    e.preventDefault();
+  };
+
+  // Handle resize on mouse move
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing || !inboxContainerRef.current) return;
+      
+      const containerRect = inboxContainerRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - containerRect.left;
+      
+      // Min: 320px, Max: 480px
+      if (newWidth >= 320 && newWidth <= 480) {
+        setInboxWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing]);
 
   // Don't render if not open at all
   if (!isOpen) return null;
 
   return (
     <nav 
+      ref={inboxContainerRef}
       role="navigation" 
       aria-label="Case inbox navigation"
       className={`
-        ${isExpanded ? 'w-[272px]' : 'w-[56px]'}
+        ${isExpanded ? '' : 'w-[56px]'}
         h-screen bg-white border-r border-[#e4e4e4]
         transition-all duration-200 ease-in-out
-        overflow-hidden flex-shrink-0
+        overflow-hidden flex-shrink-0 relative
       `}
+      style={isExpanded ? { width: `${inboxWidth}px` } : {}}
     >
+      {/* Resize Handle - Right Edge (only when expanded) */}
+      {isExpanded && (
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize transition-all z-50"
+          onMouseDown={handleResizeStart}
+        />
+      )}
+
       {/* Expanded State */}
       {isExpanded && (
-        <div className="w-[272px] h-full flex flex-col">
+        <div className="h-full flex flex-col" style={{ width: `${inboxWidth}px` }}>
           {/* Header */}
           <header className="flex items-center justify-between px-4 h-[80px] border-b border-[#e4e4e4]">
             <h2 className="text-base font-bold text-[#191919] tracking-[-0.01px]">
