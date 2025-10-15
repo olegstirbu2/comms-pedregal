@@ -226,7 +226,7 @@ export default function ChatInterface({ selectedCase = null }) {
     // Clear the new message flag after animation completes
     setTimeout(() => {
       setNewMessageId(null);
-    }, 600);
+    }, 500);
   };
 
   const handleKeyPress = (e) => {
