@@ -218,7 +218,7 @@ export default function ChatInterface({ selectedCase = null }) {
     inputRef.current?.focus();
     
     // Clear the new message flag after animation completes
-    setTimeout(() => setNewMessageId(null), 500);
+    setTimeout(() => setNewMessageId(null), 600);
   };
 
   const handleKeyPress = (e) => {
