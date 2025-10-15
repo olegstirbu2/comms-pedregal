@@ -235,9 +235,9 @@ export default function ChatInterface({ selectedCase = null }) {
       const containerRect = chatContainerRef.current.getBoundingClientRect();
       const newWidth = e.clientX - containerRect.left;
       
-      if (newWidth >= 440 && newWidth <= 800) {
-        setChatWidth(newWidth);
-      }
+      // Clamp width between 440px and 800px
+      const clampedWidth = Math.max(440, Math.min(800, newWidth));
+      setChatWidth(clampedWidth);
     };
 
     const handleMouseUp = () => {
@@ -245,9 +245,16 @@ export default function ChatInterface({ selectedCase = null }) {
     };
 
     if (isResizing) {
+      // Prevent text selection during resize
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      
       return () => {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       };
@@ -262,7 +269,7 @@ export default function ChatInterface({ selectedCase = null }) {
     >
       {/* Resize Handle - Right Edge */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize transition-all z-50"
+        className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize hover:transition-all z-50"
         onMouseDown={handleResizeStart}
       />
       {/* ChatWindowHeader - Tabs Section */}
