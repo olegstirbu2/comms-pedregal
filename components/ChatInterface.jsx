@@ -183,6 +183,9 @@ export default function ChatInterface({ selectedCase = null }) {
   const [chatWidth, setChatWidth] = useState(440);
   const [isResizing, setIsResizing] = useState(false);
   const chatContainerRef = useRef(null);
+  
+  // Animation state for new messages
+  const [newMessageId, setNewMessageId] = useState(null);
 
   // Update messages when selected case changes
   useEffect(() => {
@@ -190,6 +193,7 @@ export default function ChatInterface({ selectedCase = null }) {
       ? CASE_CONVERSATIONS[selectedCase.id] || DEFAULT_CONVERSATION
       : DEFAULT_CONVERSATION;
     setMessages(newConversation.messages);
+    setNewMessageId(null); // Clear animation state when switching cases
   }, [selectedCase]);
 
   // Auto-scroll to bottom when new messages are added
@@ -201,7 +205,7 @@ export default function ChatInterface({ selectedCase = null }) {
     if (!inputValue.trim()) return;
 
     const newMessage = {
-      id: messages.length + 1,
+      id: Date.now(), // Use timestamp for unique ID
       sender: 'agent',
       senderName: 'Ana J.',
       text: inputValue,
@@ -209,9 +213,20 @@ export default function ChatInterface({ selectedCase = null }) {
       avatarUrl: 'https://i.pravatar.cc/150?img=47',
     };
 
-    setMessages([...messages, newMessage]);
+    // Update messages first
+    setMessages(prev => [...prev, newMessage]);
     setInputValue('');
-    inputRef.current?.focus();
+    
+    // Trigger animation on next frame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      setNewMessageId(newMessage.id);
+      inputRef.current?.focus();
+    });
+    
+    // Clear the new message flag after animation completes
+    setTimeout(() => {
+      setNewMessageId(null);
+    }, 500);
   };
 
   const handleKeyPress = (e) => {
@@ -391,15 +406,24 @@ export default function ChatInterface({ selectedCase = null }) {
             <div className="flex flex-col gap-[16px] w-full">
               {messages.map((message) => {
                 const isAgent = message.sender === 'agent';
+                const isNewMessage = message.id === newMessageId;
 
                 return (
-                  <div key={message.id} className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'} w-full`}>
+                  <div 
+                    key={message.id} 
+                    className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'} w-full ${
+                      isNewMessage ? 'animate-message-in' : ''
+                    }`}
+                    style={{
+                      transformOrigin: isAgent ? 'right bottom' : 'left bottom'
+                    }}
+                  >
                     {/* Chat Header with Avatar and Name */}
                     <div className={`flex gap-[8px] items-center ${isAgent ? 'flex-row-reverse' : 'flex-row'} w-[360px]`}>
                       {/* Avatar */}
                       <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border-2 border-white shadow-[0px_1px_2px_0px_rgba(17,19,24,0.15)] shrink-0 overflow-hidden ${
                         isAgent ? 'bg-[#e3fbff]' : 'bg-gradient-to-b from-[#d4ffcd] to-[#4adc34]'
-                      }`}>
+                      } ${isNewMessage ? 'animate-avatar-pop' : ''}`}>
                         {message.avatarUrl ? (
                           <img 
                             src={message.avatarUrl} 
@@ -430,7 +454,9 @@ export default function ChatInterface({ selectedCase = null }) {
                       </div>
 
                       {/* Timestamp */}
-                      <div className="flex items-center justify-end gap-[8px] mt-[4px] w-full">
+                      <div className={`flex items-center justify-end gap-[8px] mt-[4px] w-full ${
+                        isNewMessage ? 'animate-timestamp-fade' : ''
+                      }`}>
                         <span className="text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] text-right">
                           {message.timestamp}
                         </span>
