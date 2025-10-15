@@ -178,6 +178,11 @@ export default function ChatInterface({ selectedCase = null }) {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  
+  // Resize state
+  const [chatWidth, setChatWidth] = useState(440);
+  const [isResizing, setIsResizing] = useState(false);
+  const chatContainerRef = useRef(null);
 
   // Update messages when selected case changes
   useEffect(() => {
@@ -216,8 +221,50 @@ export default function ChatInterface({ selectedCase = null }) {
     }
   };
 
+  // Resize handlers
+  const handleResizeStart = (e) => {
+    setIsResizing(true);
+    e.preventDefault();
+  };
+
+  // Handle resize on mouse move
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing || !chatContainerRef.current) return;
+      
+      const containerRect = chatContainerRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - containerRect.left;
+      
+      if (newWidth >= 440 && newWidth <= 800) {
+        setChatWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing]);
+
   return (
-    <div className="flex flex-col h-full bg-white w-[440px] shrink-0">
+    <div 
+      ref={chatContainerRef}
+      className="relative flex flex-col h-full bg-white shrink-0"
+      style={{ width: `${chatWidth}px` }}
+    >
+      {/* Resize Handle - Right Edge */}
+      <div
+        className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize transition-all z-50"
+        onMouseDown={handleResizeStart}
+      />
       {/* ChatWindowHeader - Tabs Section */}
       <div className="h-[56px] border-b border-[#e9eaec] bg-white shrink-0">
         <div className="flex items-center justify-between h-full px-[16px]">
