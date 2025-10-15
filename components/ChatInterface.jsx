@@ -193,6 +193,7 @@ export default function ChatInterface({ selectedCase = null }) {
       ? CASE_CONVERSATIONS[selectedCase.id] || DEFAULT_CONVERSATION
       : DEFAULT_CONVERSATION;
     setMessages(newConversation.messages);
+    setNewMessageId(null); // Clear animation state when switching cases
   }, [selectedCase]);
 
   // Auto-scroll to bottom when new messages are added
@@ -204,7 +205,7 @@ export default function ChatInterface({ selectedCase = null }) {
     if (!inputValue.trim()) return;
 
     const newMessage = {
-      id: messages.length + 1,
+      id: Date.now(), // Use timestamp for unique ID
       sender: 'agent',
       senderName: 'Ana J.',
       text: inputValue,
@@ -212,13 +213,20 @@ export default function ChatInterface({ selectedCase = null }) {
       avatarUrl: 'https://i.pravatar.cc/150?img=47',
     };
 
-    setMessages([...messages, newMessage]);
-    setNewMessageId(newMessage.id); // Track the new message for animation
+    // Update messages first
+    setMessages(prev => [...prev, newMessage]);
     setInputValue('');
-    inputRef.current?.focus();
+    
+    // Trigger animation on next frame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      setNewMessageId(newMessage.id);
+      inputRef.current?.focus();
+    });
     
     // Clear the new message flag after animation completes
-    setTimeout(() => setNewMessageId(null), 600);
+    setTimeout(() => {
+      setNewMessageId(null);
+    }, 600);
   };
 
   const handleKeyPress = (e) => {
