@@ -73,10 +73,9 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       const containerRect = inboxContainerRef.current.getBoundingClientRect();
       const newWidth = e.clientX - containerRect.left;
       
-      // Min: 320px, Max: 480px
-      if (newWidth >= 320 && newWidth <= 480) {
-        setInboxWidth(newWidth);
-      }
+      // Clamp width between 320px and 480px
+      const clampedWidth = Math.max(320, Math.min(480, newWidth));
+      setInboxWidth(clampedWidth);
     };
 
     const handleMouseUp = () => {
@@ -84,9 +83,16 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
     };
 
     if (isResizing) {
+      // Prevent text selection during resize
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      
       return () => {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       };
@@ -104,7 +110,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       className={`
         ${isExpanded ? '' : 'w-[56px]'}
         h-screen bg-white border-r border-[#e4e4e4]
-        transition-all duration-200 ease-in-out
+        ${!isResizing ? 'transition-all duration-200 ease-in-out' : ''}
         overflow-hidden flex-shrink-0 relative
       `}
       style={isExpanded ? { width: `${inboxWidth}px` } : {}}
@@ -112,7 +118,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       {/* Resize Handle - Right Edge (only when expanded) */}
       {isExpanded && (
         <div
-          className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize transition-all z-50"
+          className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize hover:transition-all z-50"
           onMouseDown={handleResizeStart}
         />
       )}
