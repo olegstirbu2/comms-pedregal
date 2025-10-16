@@ -127,7 +127,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       {isExpanded && (
         <div className="h-full flex flex-col" style={{ width: `${inboxWidth}px` }}>
           {/* Header */}
-          <header className="flex items-center justify-between px-4 h-[80px] border-b border-[#e4e4e4]">
+          <header className="flex items-center justify-between px-4 h-[64px] border-b border-[#e4e4e4]">
             <h2 className="text-base font-bold text-[#191919] tracking-[-0.01px]">
               Case Inbox
             </h2>
@@ -224,7 +224,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       {!isExpanded && (
         <div className="w-[56px] h-full flex flex-col bg-white">
           {/* Expand button */}
-          <div className="flex items-center justify-center h-[80px] px-3 border-b border-[#e4e4e4]">
+          <div className="flex items-center justify-center h-[64px] px-3 border-b border-[#e4e4e4]">
             <button
               onClick={handleChevronClick}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"

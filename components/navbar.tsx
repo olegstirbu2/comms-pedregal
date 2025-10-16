@@ -28,15 +28,11 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
       }`}
     >
       {/* Main Content */}
-      <div className="flex flex-col h-full p-3">
+      <div className="flex flex-col h-full">
         {/* Top Area */}
-        <div className="flex flex-col pt-2 pb-0">
-          {/* Header with Menu and Toggle */}
-          <div className="flex items-center justify-between mb-6">
-            <button className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-colors">
-              <Menu size={24} className="text-white" />
-            </button>
-            
+        <div className="flex flex-col">
+          {/* Header with Menu (64px height) */}
+          <div className={`flex items-center h-[64px] ${isExpanded ? 'pl-4' : 'justify-center'}`}>
             <button 
               onClick={() => {
                 if (isExpanded) {
@@ -46,18 +42,14 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
                   setIsExpanded(true);
                 }
               }}
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/5 transition-colors"
+              className="flex items-center justify-center w-6 h-6 hover:bg-white/5 transition-colors rounded"
             >
-              {isExpanded ? (
-                <ChevronLeft size={16} className="text-white" />
-              ) : (
-                <ChevronRight size={16} className="text-white" />
-              )}
+              <Menu size={24} className="text-white" />
             </button>
           </div>
 
           {/* Search */}
-          <div className="mb-2">
+          <div className="mb-2 px-3">
             {isExpanded ? (
               <div className="h-9 rounded-2xl border border-white/20 flex items-center px-3 gap-2">
                 <Search size={16} className="text-white" />
@@ -71,7 +63,7 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
           </div>
 
           {/* Navigation Items */}
-          <div className="flex flex-col gap-0.5 mt-2">
+          <div className="flex flex-col gap-0.5 mt-2 px-3">
             {/* Case Inbox */}
             <button
               onClick={() => {
@@ -153,7 +145,7 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
         </div>
 
         {/* Bottom Area */}
-        <div className="mt-auto flex flex-col gap-2">
+        <div className="mt-auto flex flex-col gap-2 px-3 pb-3">
           {/* Knowledge Base */}
           <button
             className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${

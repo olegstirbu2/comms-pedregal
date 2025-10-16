@@ -288,13 +288,13 @@ export default function ChatInterface({ selectedCase = null }) {
         onMouseDown={handleResizeStart}
       />
       {/* ChatWindowHeader - Tabs Section */}
-      <div className="h-[56px] border-b border-[#e9eaec] bg-white shrink-0">
+      <div className="h-[64px] border-b border-[#e9eaec] bg-white shrink-0">
         <div className="flex items-center justify-between h-full px-[16px]">
           <div className="flex gap-[16px] items-center">
             {/* Consumer Tab - Active */}
             <button
               onClick={() => setActiveTab('Consumer')}
-              className={`relative h-[56px] px-[4px] py-[16px] flex items-center justify-center ${
+              className={`relative h-[64px] px-[4px] flex items-center justify-center ${
                 activeTab === 'Consumer' ? 'text-[#111318]' : 'text-[#51545d]'
               }`}
             >
@@ -309,7 +309,7 @@ export default function ChatInterface({ selectedCase = null }) {
             {/* Courier Tab */}
             <button
               onClick={() => setActiveTab('Courier')}
-              className={`relative h-[56px] px-[4px] py-[16px] flex items-center justify-center ${
+              className={`relative h-[64px] px-[4px] flex items-center justify-center ${
                 activeTab === 'Courier' ? 'text-[#111318]' : 'text-[#51545d]'
               }`}
             >
@@ -324,7 +324,7 @@ export default function ChatInterface({ selectedCase = null }) {
             {/* Merchant Tab with Dropdown */}
             <button 
               onClick={() => setActiveTab('Merchant')}
-              className={`relative h-[56px] px-[4px] py-[16px] flex items-center gap-[4px] justify-center ${
+              className={`relative h-[64px] px-[4px] flex items-center gap-[4px] justify-center ${
                 activeTab === 'Merchant' ? 'text-[#111318]' : 'text-[#51545d]'
               }`}
             >
