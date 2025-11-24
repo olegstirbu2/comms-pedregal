@@ -142,3 +142,14 @@ export function ChevronDownIcon({ size = 16, className = "" }) {
   );
 }
 
+export function CirclesFourIcon({ size = 16, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <circle cx="4.5" cy="4.5" r="2" fill="currentColor"/>
+      <circle cx="11.5" cy="4.5" r="2" fill="currentColor"/>
+      <circle cx="4.5" cy="11.5" r="2" fill="currentColor"/>
+      <circle cx="11.5" cy="11.5" r="2" fill="currentColor"/>
+    </svg>
+  );
+}
+

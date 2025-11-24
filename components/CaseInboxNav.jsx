@@ -1,54 +1,70 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, Search, MessageSquare } from 'lucide-react';
+import { 
+  CaretDoubleLeftIcon,
+  CaretDoubleRightIcon,
+  ChevronDownIcon,
+  SearchLineIcon,
+  SortIcon,
+  ChatDefaultLineIcon,
+  EmailLineIcon,
+  PersonUserLineIcon,
+  MerchantLineIcon,
+  SignalLowIcon,
+  WoltPlusBadge
+} from './icons/NavIcons';
 
-// Mock data for cases
+// Mock data for cases matching ChatInterface conversations
 const MOCK_CASES = [
   {
     id: 1,
-    name: 'Jessica A',
-    caseNumber: '#54632324254',
-    timestamp: 'Now',
-    category: 'Missing Minor',
-    message: 'Waiting for response...',
+    name: 'Jessica A.',
+    timestamp: '1m',
+    category: 'Missing Items',
+    message: 'Hi, my order is missing a small item - a pack of napkins. Everything else arrived fine.',
     avatarUrl: 'https://i.pravatar.cc/150?img=5',
-    avatarGradient: 'bg-gradient-to-r from-[#31b9c0] to-[#00838a]',
     avatarInitials: 'JA',
-    isUnread: false,
-    isSelected: false,
+    audienceType: 'consumer',
+    notificationCount: 1,
+    isWoltPlus: false,
+    slaSeverity: 'good',
+    channelType: 'chat',
   },
   {
     id: 2,
     name: 'Edeka Weiß',
-    caseNumber: '#2411124254',
     timestamp: '30s',
     category: 'Item Substitution',
-    message: 'Red Bull Sugar Free 250ml (x4) is out of stock. We suggest Red Bull Original 250ml (x4) as a substitute.',
+    message: 'I see Red Bull Sugar Free is out of stock. Can I get the original version instead?',
     avatarUrl: 'https://i.pravatar.cc/150?img=28',
-    avatarGradient: 'bg-purple-500',
     avatarInitials: 'EW',
-    isUnread: true,
-    isSelected: false,
+    audienceType: 'consumer',
+    notificationCount: null,
+    isWoltPlus: false,
+    slaSeverity: 'good',
+    channelType: 'chat',
   },
   {
     id: 3,
     name: 'Giuseppe O.',
-    caseNumber: '#323234242',
     timestamp: '3m',
     category: 'Missing Items',
-    message: null,
+    message: 'Hello, I received my order but three items are missing from the bag.',
     avatarUrl: 'https://i.pravatar.cc/150?img=12',
-    avatarGradient: 'bg-[#111318]',
     avatarInitials: 'GO',
-    isUnread: false,
-    isSelected: false,
+    audienceType: 'consumer',
+    notificationCount: null,
+    isWoltPlus: false,
+    slaSeverity: 'good',
+    channelType: 'chat',
   },
 ];
 
 export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId }) {
   const [isExpanded, setIsExpanded] = useState(true); // true = expanded (272px), false = collapsed (56px)
   const [selectedFilter, setSelectedFilter] = useState('Open');
+  const [readCases, setReadCases] = useState(new Set([2, 3])); // Track which cases have been read - cases 2 and 3 are already read
   
   // Resize state
   const [inboxWidth, setInboxWidth] = useState(380); // Default width
@@ -109,7 +125,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       aria-label="Case inbox navigation"
       className={`
         ${isExpanded ? '' : 'w-[56px]'}
-        h-screen bg-white border-r border-[#e4e4e4]
+        h-full bg-white border-r border-[#e9eaec] rounded-l-[24px]
         ${!isResizing ? 'transition-all duration-200 ease-in-out' : ''}
         overflow-hidden flex-shrink-0 relative
       `}
@@ -127,37 +143,47 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
       {isExpanded && (
         <div className="h-full flex flex-col" style={{ width: `${inboxWidth}px` }}>
           {/* Header */}
-          <header className="flex items-center justify-between px-4 h-[64px] border-b border-[#e4e4e4]">
-            <h2 className="text-base font-bold text-[#191919] tracking-[-0.01px]">
-              Case Inbox
-            </h2>
+          <header className="flex items-center justify-between px-3 h-[64px] border-b border-[#e9eaec]">
+            <div className="flex items-center gap-1">
+              <h2 className="text-base font-semibold text-[#111318] tracking-[-0.01px]">
+                Open (3)
+              </h2>
+            </div>
             <button
               onClick={handleChevronClick}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
               aria-label="Collapse case inbox"
             >
-              <ChevronLeft size={16} className="text-[#191919]" />
+              <CaretDoubleLeftIcon size={16} className="text-[#111318]" />
             </button>
           </header>
 
           {/* Filter and Search */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#e4e4e4]">
+          <div className="flex items-center justify-between px-3 py-3 border-b border-[#e4e4e4]">
             <button
               onClick={() => {/* Toggle filter dropdown */}}
-              className="h-6 px-2 flex items-center gap-1 rounded-full border border-[#d3d6d9] hover:bg-gray-50 transition-colors"
+              className="h-8 px-3 flex items-center gap-1 rounded-lg border border-[#d3d6d9] hover:bg-gray-50 transition-colors"
             >
-              <span className="text-sm font-semibold text-[#111318] tracking-[-0.01px]">
-                {selectedFilter}
+              <span className="text-xs font-bold text-[#111318] tracking-[-0.01px]">
+                Filter
               </span>
-              <ChevronDown size={12} className="text-[#111318]" />
+              <ChevronDownIcon size={16} className="text-[#111318]" />
             </button>
 
-            <button
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Search cases"
-            >
-              <Search size={16} className="text-[#191919]" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Sort cases"
+              >
+                <SortIcon size={16} className="text-[#111318]" />
+              </button>
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Search cases"
+              >
+                <SearchLineIcon size={16} className="text-[#111318]" />
+              </button>
+            </div>
           </div>
 
           {/* Case List */}
@@ -170,7 +196,11 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
               <article
                 key={caseItem.id}
                 role="listitem"
-                onClick={() => onCaseSelect?.(caseItem)}
+                onClick={() => {
+                  // Mark case as read
+                  setReadCases(prev => new Set([...prev, caseItem.id]));
+                  onCaseSelect?.(caseItem);
+                }}
                 className={`
                   relative px-4 py-3 border-b border-[#e9eaec]
                   cursor-pointer hover:bg-gray-50 transition-colors
@@ -179,7 +209,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
               >
                 {/* Selected indicator */}
                 {selectedCaseId === caseItem.id && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[5px] h-full bg-[#111318] rounded-l" />
+                  <div className="absolute right-0 top-0 bottom-0 w-[4px] bg-[#111318]" />
                 )}
 
                 {/* Case content */}
@@ -187,32 +217,72 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
                   {/* Header row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      {caseItem.isUnread && (
-                        <div className="w-2 h-2 rounded-full bg-[#0099ff] flex-shrink-0" />
-                      )}
-                      <h3 className="text-sm font-semibold text-[#191919] tracking-[-0.01px] truncate">
-                        {caseItem.name} {caseItem.caseNumber}
-                      </h3>
+                      {/* Avatar with audience badge */}
+                      <div className="relative w-6 h-6 flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-[#4969f5] flex items-center justify-center overflow-hidden">
+                          {caseItem.avatarUrl ? (
+                            <img src={caseItem.avatarUrl} alt={caseItem.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white text-[10px] font-semibold">{caseItem.avatarInitials}</span>
+                          )}
+                        </div>
+                        {/* Audience badge (person or merchant icon) */}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#f6f7f8] border border-white rounded-full flex items-center justify-center">
+                          {caseItem.audienceType === 'consumer' ? (
+                            <PersonUserLineIcon size={8} className="text-[#51545d]" />
+                          ) : (
+                            <MerchantLineIcon size={8} className="text-[#51545d]" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-[#191919] tracking-[-0.01px] truncate">
+                          {caseItem.name}
+                        </h3>
+                        {caseItem.isWoltPlus && (
+                          <WoltPlusBadge className="flex-shrink-0" />
+                        )}
+                      </div>
                     </div>
                     <time className="text-xs text-[#606060] tracking-[-0.01px] ml-2 flex-shrink-0">
                       {caseItem.timestamp}
                     </time>
                   </div>
 
-                  {/* Category */}
-                  <div className="flex items-center gap-1">
-                    <MessageSquare size={12} className="text-[#51545d] flex-shrink-0" />
-                    <span className="text-xs text-[#51545d] tracking-[-0.01px] truncate">
-                      {caseItem.category}
-                    </span>
+                  {/* Message preview with notification badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    {caseItem.message && (
+                      <p className={`text-sm tracking-[-0.01px] line-clamp-1 leading-5 flex-1 ${
+                        readCases.has(caseItem.id) ? 'font-normal text-[#51545d]' : 'font-semibold text-[#191919]'
+                      }`}>
+                        {caseItem.message}
+                      </p>
+                    )}
+                    {caseItem.notificationCount && !readCases.has(caseItem.id) && (
+                      <div className="flex-shrink-0 bg-[#eb1700] text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center leading-none">
+                        {caseItem.notificationCount}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Message preview */}
-                  {caseItem.message && (
-                    <p className="text-sm text-[#606060] tracking-[-0.01px] line-clamp-2 leading-5">
-                      {caseItem.message}
-                    </p>
-                  )}
+                  {/* Category and SLA indicator */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      {caseItem.channelType === 'chat' ? (
+                        <ChatDefaultLineIcon size={12} className="text-[#b2b2b2] flex-shrink-0" />
+                      ) : (
+                        <EmailLineIcon size={12} className="text-[#b2b2b2] flex-shrink-0" />
+                      )}
+                      <span className="text-xs text-[#51545d] tracking-[-0.01px] truncate">
+                        {caseItem.category}
+                      </span>
+                    </div>
+                    {/* SLA severity indicator */}
+                    <div className="flex items-center justify-center w-4 h-4 bg-[#f6f7f8] rounded-full">
+                      <SignalLowIcon size={8} className="text-[#111318]" />
+                    </div>
+                  </div>
                 </div>
               </article>
             ))}
@@ -230,7 +300,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
               aria-label="Expand case inbox"
             >
-              <ChevronRight size={16} className="text-[#191919]" />
+              <CaretDoubleRightIcon size={16} className="text-[#191919]" />
             </button>
           </div>
 
@@ -240,7 +310,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Search cases"
             >
-              <Search size={16} className="text-[#191919]" />
+              <SearchLineIcon size={16} className="text-[#191919]" />
             </button>
           </div>
 

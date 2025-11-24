@@ -4,12 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   ChatDefaultLineIcon, 
   PromoLineIcon, 
-  LanguageLineIcon, 
+  LanguageLineIcon,
+  CirclesFourIcon, 
   SendFillIcon, 
   AddIcon, 
   SmileyHappyLineIcon, 
   ChevronDownIcon 
 } from './icons/CustomIcons';
+import ChannelToggle from './ChannelToggle';
+import PhoneComposer from './PhoneComposer';
+import EmailComposer from './EmailComposer';
 
 // Mock conversations by case ID
 const CASE_CONVERSATIONS = {
@@ -19,6 +23,8 @@ const CASE_CONVERSATIONS = {
       badge: 'Cx',
       description: 'First time user • Minor issue',
       language: 'English',
+      phone: '+1 234 567 8901',
+      email: 'jessica.a@example.com',
       avatarUrl: 'https://i.pravatar.cc/150?img=5',
       timeline: [
         '15:45 • Used self-help (Missing Items) → Case created',
@@ -50,6 +56,8 @@ const CASE_CONVERSATIONS = {
       badge: 'Cx',
       description: 'Regular customer • Substitution request',
       language: 'English',
+      phone: '+49 152 1234 5678',
+      email: 'edeka.weiss@example.com',
       avatarUrl: 'https://i.pravatar.cc/150?img=28',
       timeline: [
         '16:20 • Item out of stock → Substitution suggested',
@@ -89,6 +97,8 @@ const CASE_CONVERSATIONS = {
       badge: 'Cx',
       description: 'VIP customer • Multiple orders',
       language: 'English',
+      phone: '+39 345 678 9012',
+      email: 'giuseppe.o@example.com',
       avatarUrl: 'https://i.pravatar.cc/150?img=12',
       timeline: [
         '14:10 • Reported missing items → Case created',
@@ -139,6 +149,8 @@ const DEFAULT_CONVERSATION = {
     badge: 'Cx',
     description: 'High value • Wolt+ subscriber since 22\'',
     language: 'English',
+    phone: '+1 555 123 4567',
+    email: 'aaron.w@example.com',
     avatarUrl: 'https://i.pravatar.cc/150?img=33',
     timeline: [
       '20:12 • Used self-help (Delivery Late) → Case created',
@@ -165,13 +177,115 @@ const DEFAULT_CONVERSATION = {
   ]
 };
 
+// Courier tab data variations
+const COURIER_DATA_VARIANTS = [
+  {
+    contactInfo: {
+      name: 'Marcus Johnson',
+      badge: 'Dx',
+      description: '',
+      language: 'English',
+      phone: '+1 555 234 5678',
+      email: 'marcus.j@courier.com',
+      avatarUrl: 'https://i.pravatar.cc/150?img=15',
+      timeline: []
+    },
+    messages: []
+  },
+  {
+    contactInfo: {
+      name: 'Sarah Williams',
+      badge: 'Dx',
+      description: '',
+      language: 'English',
+      phone: '+1 555 345 6789',
+      email: 'sarah.w@courier.com',
+      avatarUrl: 'https://i.pravatar.cc/150?img=45',
+      timeline: []
+    },
+    messages: []
+  },
+  {
+    contactInfo: {
+      name: 'David Chen',
+      badge: 'Dx',
+      description: '',
+      language: 'English',
+      phone: '+1 555 456 7890',
+      email: 'david.c@courier.com',
+      avatarUrl: 'https://i.pravatar.cc/150?img=68',
+      timeline: []
+    },
+    messages: []
+  }
+];
+
+// Merchant tab data variations
+const MERCHANT_DATA_VARIANTS = [
+  {
+    contactInfo: {
+      name: 'McDonald\'s',
+      badge: 'Mx',
+      description: '',
+      language: 'English',
+      phone: '+1 800 244 6227',
+      email: 'support@mcdonalds.com',
+      avatarUrl: 'https://logo.clearbit.com/mcdonalds.com',
+      timeline: []
+    },
+    messages: []
+  },
+  {
+    contactInfo: {
+      name: 'Burger King',
+      badge: 'Mx',
+      description: '',
+      language: 'English',
+      phone: '+1 866 394 2493',
+      email: 'support@burgerking.com',
+      avatarUrl: 'https://logo.clearbit.com/bk.com',
+      timeline: []
+    },
+    messages: []
+  },
+  {
+    contactInfo: {
+      name: 'Starbucks',
+      badge: 'Mx',
+      description: '',
+      language: 'English',
+      phone: '+1 800 782 7282',
+      email: 'support@starbucks.com',
+      avatarUrl: 'https://logo.clearbit.com/starbucks.com',
+      timeline: []
+    },
+    messages: []
+  }
+];
+
 export default function ChatInterface({ selectedCase = null }) {
   const [activeTab, setActiveTab] = useState('Consumer');
+  const [selectedChannel, setSelectedChannel] = useState('chat');
   
-  // Get conversation data based on selected case
-  const conversationData = selectedCase?.id 
-    ? CASE_CONVERSATIONS[selectedCase.id] || DEFAULT_CONVERSATION
-    : DEFAULT_CONVERSATION;
+  // Get conversation data based on active tab and selected case
+  const getConversationData = () => {
+    if (activeTab === 'Courier') {
+      // Cycle through courier variants based on case ID (or default to first)
+      const index = selectedCase?.id ? (selectedCase.id - 1) % COURIER_DATA_VARIANTS.length : 0;
+      return COURIER_DATA_VARIANTS[index];
+    } else if (activeTab === 'Merchant') {
+      // Cycle through merchant variants based on case ID (or default to first)
+      const index = selectedCase?.id ? (selectedCase.id - 1) % MERCHANT_DATA_VARIANTS.length : 0;
+      return MERCHANT_DATA_VARIANTS[index];
+    } else {
+      // Consumer tab - use selected case or default
+      return selectedCase?.id 
+        ? CASE_CONVERSATIONS[selectedCase.id] || DEFAULT_CONVERSATION
+        : DEFAULT_CONVERSATION;
+    }
+  };
+  
+  const conversationData = getConversationData();
   
   const [messages, setMessages] = useState(conversationData.messages);
   const [inputValue, setInputValue] = useState('');
@@ -187,14 +301,12 @@ export default function ChatInterface({ selectedCase = null }) {
   // Animation state for new messages
   const [newMessageId, setNewMessageId] = useState(null);
 
-  // Update messages when selected case changes
+  // Update messages when selected case or active tab changes
   useEffect(() => {
-    const newConversation = selectedCase?.id 
-      ? CASE_CONVERSATIONS[selectedCase.id] || DEFAULT_CONVERSATION
-      : DEFAULT_CONVERSATION;
+    const newConversation = getConversationData();
     setMessages(newConversation.messages);
-    setNewMessageId(null); // Clear animation state when switching cases
-  }, [selectedCase]);
+    setNewMessageId(null); // Clear animation state when switching cases/tabs
+  }, [selectedCase, activeTab]);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -279,7 +391,7 @@ export default function ChatInterface({ selectedCase = null }) {
   return (
     <div 
       ref={chatContainerRef}
-      className="relative flex flex-col h-full bg-white shrink-0"
+      className="relative flex flex-col h-full bg-white shrink-0 border-r border-[#e9eaec]"
       style={{ width: `${chatWidth}px` }}
     >
       {/* Resize Handle - Right Edge */}
@@ -321,35 +433,39 @@ export default function ChatInterface({ selectedCase = null }) {
               )}
             </button>
 
-            {/* Merchant Tab with Dropdown */}
+            {/* Merchant Tab */}
             <button 
               onClick={() => setActiveTab('Merchant')}
-              className={`relative h-[64px] px-[4px] flex items-center gap-[4px] justify-center ${
+              className={`relative h-[64px] px-[4px] flex items-center justify-center ${
                 activeTab === 'Merchant' ? 'text-[#111318]' : 'text-[#51545d]'
               }`}
             >
               <span className={`text-[14px] leading-[20px] tracking-[-0.01px] whitespace-nowrap ${activeTab === 'Merchant' ? 'font-semibold' : 'font-normal'}`}>
                 Merchant
               </span>
-              <ChevronDownIcon size={16} className="text-[#51545d]" />
               {activeTab === 'Merchant' && (
                 <div className="absolute bottom-0 left-0 right-0 h-[4px] bg-[#111318] rounded-tl-[4px] rounded-tr-[4px]" />
               )}
             </button>
           </div>
 
-          {/* Language Icon */}
+          {/* Multi-action Icon */}
           <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-            <LanguageLineIcon size={16} className="text-[#191919]" />
+            <CirclesFourIcon size={16} className="text-[#191919]" />
           </button>
         </div>
       </div>
 
       {/* ChatContentWrapper */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 relative">
+        {/* Channel Toggle - Sticky floating component */}
+        <div className="absolute top-0 left-0 right-0 z-20">
+          <ChannelToggle selectedChannel={selectedChannel} onChannelChange={setSelectedChannel} />
+        </div>
+
         {/* ChatContent - Scrollable Area */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="flex flex-col items-center justify-end min-h-full p-[16px] gap-[16px]">
+          <div className="flex flex-col items-center justify-end min-h-full p-[16px] gap-[16px] pt-[56px]">
             {/* ChatWindowCard */}
             <div className="flex flex-col items-center gap-[16px] w-full shrink-0">
               {/* Avatar */}
@@ -376,9 +492,11 @@ export default function ChatInterface({ selectedCase = null }) {
               </p>
 
               {/* Description */}
-              <p className="text-[12px] leading-[18px] font-normal text-[#51545d] tracking-[-0.01px] text-center">
-                {conversationData.contactInfo.description}
-              </p>
+              {conversationData.contactInfo.description && (
+                <p className="text-[12px] leading-[18px] font-normal text-[#51545d] tracking-[-0.01px] text-center">
+                  {conversationData.contactInfo.description}
+                </p>
+              )}
 
               {/* Language Tag */}
               <div className="flex items-center gap-[4px] h-[20px] px-[8px] bg-white border border-[#e9eaec] rounded-full">
@@ -389,22 +507,25 @@ export default function ChatInterface({ selectedCase = null }) {
               </div>
 
               {/* Timeline */}
-              <div className="flex flex-col gap-[12px] items-start w-full max-w-[392px]">
-                {conversationData.contactInfo.timeline.map((item, index) => (
-                  <div key={index} className="flex items-center justify-center w-full">
-                    <p className={`text-[12px] leading-[18px] font-normal tracking-[-0.01px] text-center ${
-                      index === 0 ? 'text-[#51545d]' : 'text-[#606060]'
-                    }`}>
-                      {item}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              {conversationData.contactInfo.timeline && conversationData.contactInfo.timeline.length > 0 && (
+                <div className="flex flex-col gap-[12px] items-start w-full max-w-[392px]">
+                  {conversationData.contactInfo.timeline.map((item, index) => (
+                    <div key={index} className="flex items-center justify-center w-full">
+                      <p className={`text-[12px] leading-[18px] font-normal tracking-[-0.01px] text-center ${
+                        index === 0 ? 'text-[#51545d]' : 'text-[#606060]'
+                      }`}>
+                        {item}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Chat Messages */}
-            <div className="flex flex-col gap-[16px] w-full">
-              {messages.map((message) => {
+            {/* Chat Messages - Only show in chat mode */}
+            {selectedChannel === 'chat' && (
+              <div className="flex flex-col gap-[16px] w-full">
+                {messages.map((message) => {
                 const isAgent = message.sender === 'agent';
                 const isNewMessage = message.id === newMessageId;
 
@@ -464,76 +585,77 @@ export default function ChatInterface({ selectedCase = null }) {
                     </div>
                   </div>
                 );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ChatInputWrapper */}
-      <div className="bg-white shrink-0 pb-[16px] px-[16px]">
-        {/* ChatInput */}
-        <div className="border border-[#e9eaec] rounded-[16px] bg-white overflow-hidden">
-          <div className="p-[16px] flex flex-col gap-[16px]">
-                {/* Primary Actions Row */}
-                <div className="flex items-center justify-between">
-                  {/* Chat Button */}
-                  <button className="flex items-center gap-[4px] h-[32px] px-[12px] bg-[#f6f7f8] rounded-[8px]">
-                    <ChatDefaultLineIcon size={16} className="text-[#111318]" />
-                    <span className="text-[12px] leading-[18px] font-bold text-[#111318] tracking-[-0.01px]">
-                      Chat
-                    </span>
-                    <ChevronDownIcon size={16} className="text-[#111318]" />
-                  </button>
-                </div>
-
-            {/* Text Input */}
-            <div className="flex flex-col gap-[8px]">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="text-[14px] leading-[20px] font-normal text-[#51545d] tracking-[-0.01px] bg-transparent border-none outline-none w-full max-h-[192px]"
-                aria-label="Message input"
-              />
-            </div>
-
-                {/* Actions Row */}
-                <div className="flex items-center justify-between">
-                  {/* Lead Actions */}
-                  <div className="flex gap-[2px] items-center">
-                    <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                      <AddIcon size={16} className="text-[#191919]" />
-                    </button>
-                    <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                      <SmileyHappyLineIcon size={16} className="text-[#191919]" />
-                    </button>
-                    <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                      <PromoLineIcon size={16} className="text-[#191919]" />
+      {/* Composer - Conditional based on channel */}
+      {selectedChannel === 'chat' && (
+        <div className="bg-white shrink-0 pb-[16px] px-[16px]">
+          {/* ChatInput */}
+          <div className="border border-[#e9eaec] rounded-[16px] bg-white overflow-hidden">
+            <div className="p-[16px] flex flex-col gap-[16px]">
+                  {/* Primary Actions Row */}
+                  <div className="flex items-center justify-between">
+                    {/* Chat Button */}
+                    <button className="flex items-center gap-[4px] h-[32px] px-[12px] bg-[#f6f7f8] rounded-[8px]">
+                      <ChatDefaultLineIcon size={16} className="text-[#111318]" />
+                      <span className="text-[12px] leading-[18px] font-bold text-[#111318] tracking-[-0.01px]">
+                        Chat
+                      </span>
+                      <ChevronDownIcon size={16} className="text-[#111318]" />
                     </button>
                   </div>
 
-                  {/* Send Button */}
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim()}
-                    className={`w-[40px] h-[40px] flex items-center justify-center rounded-[8px] transition-all ${
-                      inputValue.trim()
-                        ? 'bg-[#e7fef4] hover:bg-[#d0f5e6]'
-                        : 'bg-[#f6f7f8] cursor-not-allowed'
-                    }`}
-                    aria-label="Send message"
-                  >
-                    <SendFillIcon size={24} className="text-[#00855f]" />
-                  </button>
-                </div>
+              {/* Text Input */}
+              <div className="flex flex-col gap-[8px]">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type a message..."
+                  className="text-[14px] leading-[20px] font-normal text-[#51545d] tracking-[-0.01px] bg-transparent border-none outline-none w-full max-h-[192px]"
+                  aria-label="Message input"
+                />
+              </div>
+
+                  {/* Actions Row */}
+                  <div className="flex items-center justify-between">
+                    {/* Lead Actions */}
+                    <div className="flex gap-[2px] items-center">
+                      <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                        <AddIcon size={16} className="text-[#191919]" />
+                      </button>
+                      <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                        <SmileyHappyLineIcon size={16} className="text-[#191919]" />
+                      </button>
+                      <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                        <PromoLineIcon size={16} className="text-[#191919]" />
+                      </button>
+                    </div>
+
+                    {/* Send Button */}
+                    <button
+                      onClick={handleSendMessage}
+                      className="w-[40px] h-[40px] flex items-center justify-center rounded-[8px] bg-[#e7fef4] hover:bg-[#d0f5e6] transition-all"
+                      aria-label="Send message"
+                    >
+                      <SendFillIcon size={24} className="text-[#00855f] -rotate-45" />
+                    </button>
+                  </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+      
+      {selectedChannel === 'phone' && <PhoneComposer contactInfo={conversationData.contactInfo} />}
+      {selectedChannel === 'email' && <EmailComposer contactInfo={conversationData.contactInfo} />}
     </div>
   );
 }
