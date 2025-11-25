@@ -73,6 +73,20 @@ const MOCK_CASES = [
     slaSeverity: 'good',
     channelType: 'chat',
   },
+  {
+    id: 5,
+    name: 'Marcus Chen',
+    timestamp: '1m',
+    category: 'Wrong Order',
+    message: 'Courier: Package has been picked up. ETA 15 minutes.',
+    avatarUrl: 'https://i.pravatar.cc/150?img=52',
+    avatarInitials: 'MC',
+    audienceType: 'consumer',
+    notificationCount: 2,
+    isWoltPlus: false,
+    slaSeverity: 'good',
+    channelType: 'chat',
+  },
 ];
 
 export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId, readCourierNotifications = {} }) {

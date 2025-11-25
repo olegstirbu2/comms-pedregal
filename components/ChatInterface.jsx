@@ -179,6 +179,39 @@ const CASE_CONVERSATIONS = {
         avatarUrl: 'https://i.pravatar.cc/150?img=47',
       }
     ]
+  },
+  5: { // Marcus Chen - Wrong Order
+    contactInfo: {
+      name: 'Marcus Chen',
+      badge: 'Cx',
+      description: 'Regular customer • Tech professional',
+      language: 'English',
+      phone: '+1 415 555 0123',
+      email: 'marcus.chen@example.com',
+      avatarUrl: 'https://i.pravatar.cc/150?img=52',
+      timeline: [
+        '18:45 • Wrong order reported → Case created',
+        'Connected with consumer'
+      ]
+    },
+    messages: [
+      {
+        id: 1,
+        sender: 'consumer',
+        senderName: 'Marcus Chen',
+        text: 'I received someone else\'s order. This isn\'t what I ordered at all.',
+        timestamp: '1m',
+        avatarUrl: 'https://i.pravatar.cc/150?img=52',
+      },
+      {
+        id: 2,
+        sender: 'agent',
+        senderName: 'Ana J.',
+        text: 'I\'m so sorry about that mix-up, Marcus! Let me arrange for the correct order to be sent to you right away.',
+        timestamp: '55s ∙ Sent',
+        avatarUrl: 'https://i.pravatar.cc/150?img=47',
+      }
+    ]
   }
 };
 
@@ -550,13 +583,154 @@ const MULTI_COURIER_CASES = {
       },
       messages: []
     }
-  ]
+  ],
+  5: { // Marcus Chen case - Wrong Order with dropdown display
+    displayMode: 'dropdown',
+    couriers: [
+      {
+        id: 1,
+        name: 'Alex T',
+        avatarUrl: 'https://i.pravatar.cc/150?img=11',
+        notificationCount: 0,
+        contactInfo: {
+          name: 'Alex T',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 111 2222',
+          email: 'alex.t@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=11',
+          timeline: []
+        },
+        messages: []
+      },
+      {
+        id: 2,
+        name: 'Jordan K',
+        avatarUrl: 'https://i.pravatar.cc/150?img=33',
+        notificationCount: 2,
+        contactInfo: {
+          name: 'Jordan K',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 222 3333',
+          email: 'jordan.k@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=33',
+          timeline: []
+        },
+        messages: [
+          {
+            id: 1,
+            sender: 'courier',
+            senderName: 'Jordan K',
+            text: 'Package has been picked up. On my way now!',
+            timestamp: '2m',
+            avatarUrl: 'https://i.pravatar.cc/150?img=33',
+          },
+          {
+            id: 2,
+            sender: 'courier',
+            senderName: 'Jordan K',
+            text: 'Package has been picked up. ETA 15 minutes.',
+            timestamp: '1m',
+            avatarUrl: 'https://i.pravatar.cc/150?img=33',
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: 'Taylor M',
+        avatarUrl: 'https://i.pravatar.cc/150?img=24',
+        notificationCount: 0,
+        contactInfo: {
+          name: 'Taylor M',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 333 4444',
+          email: 'taylor.m@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=24',
+          timeline: []
+        },
+        messages: []
+      },
+      {
+        id: 4,
+        name: 'Casey L',
+        avatarUrl: 'https://i.pravatar.cc/150?img=35',
+        notificationCount: 0,
+        contactInfo: {
+          name: 'Casey L',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 444 5555',
+          email: 'casey.l@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=35',
+          timeline: []
+        },
+        messages: []
+      },
+      {
+        id: 5,
+        name: 'Morgan P',
+        avatarUrl: 'https://i.pravatar.cc/150?img=57',
+        notificationCount: 0,
+        contactInfo: {
+          name: 'Morgan P',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 555 6666',
+          email: 'morgan.p@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=57',
+          timeline: []
+        },
+        messages: []
+      },
+      {
+        id: 6,
+        name: 'Riley S',
+        avatarUrl: 'https://i.pravatar.cc/150?img=41',
+        notificationCount: 0,
+        contactInfo: {
+          name: 'Riley S',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 666 7777',
+          email: 'riley.s@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=41',
+          timeline: []
+        },
+        messages: []
+      },
+      {
+        id: 7,
+        name: 'Quinn R',
+        avatarUrl: 'https://i.pravatar.cc/150?img=19',
+        notificationCount: 0,
+        contactInfo: {
+          name: 'Quinn R',
+          badge: 'Dx',
+          description: '',
+          language: 'English',
+          phone: '+1 415 777 8888',
+          email: 'quinn.r@courier.com',
+          avatarUrl: 'https://i.pravatar.cc/150?img=19',
+          timeline: []
+        },
+        messages: []
+      }
+    ]
+  }
 };
 
 export default function ChatInterface({ 
   selectedCase = null, 
   readCourierNotifications = {},
-  onMarkCourierNotificationsRead
+  onMarkCourierNotificationsRead = () => {}
 }) {
   const [activeTab, setActiveTab] = useState('Consumer');
   const [selectedChannel, setSelectedChannel] = useState('chat');
@@ -574,8 +748,14 @@ export default function ChatInterface({
   const [chipBadgeVisible, setChipBadgeVisible] = useState(true);
   
   // Check if current case has multiple couriers
-  const hasMultipleCouriers = selectedCase?.id && MULTI_COURIER_CASES[selectedCase.id];
-  const couriers = hasMultipleCouriers ? MULTI_COURIER_CASES[selectedCase.id] : [];
+  const multiCourierData = selectedCase?.id && MULTI_COURIER_CASES[selectedCase.id];
+  const hasMultipleCouriers = !!multiCourierData;
+  
+  // Handle different data structures (array for chips, object with couriers for dropdown)
+  const isDropdownMode = multiCourierData?.displayMode === 'dropdown';
+  const couriers = isDropdownMode 
+    ? (multiCourierData?.couriers || [])
+    : (Array.isArray(multiCourierData) ? multiCourierData : []);
   
   // Check if any courier has notifications (for tab dot) - only show if not yet read
   const hasCourierNotifications = couriers.some(c => c.notificationCount > 0) && 
@@ -583,6 +763,10 @@ export default function ChatInterface({
   
   // Check if consumer has notifications for this case
   const hasConsumerNotification = consumerNotifications[selectedCase?.id] || false;
+  
+  // Dropdown state for case 5
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   
   // Get conversation data based on active tab and selected case
   const getConversationData = () => {
@@ -629,6 +813,7 @@ export default function ChatInterface({
     setSelectedChannel('chat');
     setSelectedCourierId(null);
     setChipBadgeVisible(true); // Reset chip badge visibility for new case
+    setIsDropdownOpen(false); // Close dropdown when switching cases
     
     // Clear consumer notification after 0.5 second delay when case is selected
     if (selectedCase?.id && consumerNotifications[selectedCase.id]) {
@@ -662,9 +847,23 @@ export default function ChatInterface({
     setShowScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isDropdownOpen]);
+
   // Update scroll buttons when courier tab is active
   useEffect(() => {
-    if (activeTab === 'Courier' && hasMultipleCouriers) {
+    if (activeTab === 'Courier' && hasMultipleCouriers && !isDropdownMode) {
       // Check after a brief delay to ensure DOM is rendered
       setTimeout(checkScrollButtons, 100);
       
@@ -785,9 +984,13 @@ export default function ChatInterface({
       />
       {/* ChatWindowHeader - Tabs Section */}
       <div 
-        className="border-b border-[#e9eaec] bg-white shrink-0 transition-all duration-200 ease-out overflow-hidden"
+        className={`border-b border-[#e9eaec] bg-white shrink-0 transition-all duration-200 ease-out ${
+          isDropdownMode && activeTab === 'Courier' ? 'overflow-visible' : 'overflow-hidden'
+        }`}
         style={{ 
-          height: activeTab === 'Courier' && hasMultipleCouriers ? '104px' : '64px' 
+          height: activeTab === 'Courier' && hasMultipleCouriers 
+            ? (isDropdownMode ? '116px' : '104px') 
+            : '64px' 
         }}
       >
         {/* Main Tab Row */}
@@ -874,74 +1077,157 @@ export default function ChatInterface({
           </button>
         </div>
 
-        {/* Courier Chips Row - Only visible when Courier tab is active with multiple couriers */}
-        <div 
-          className={`relative px-[16px] pt-[8px] pb-[8px] transition-all duration-200 ease-out ${
-            activeTab === 'Courier' && hasMultipleCouriers 
-              ? 'opacity-100 translate-y-0' 
-              : 'opacity-0 -translate-y-2 pointer-events-none'
-          }`}
-        >
-          {/* Scroll Left Button */}
-          <button
-            onClick={() => scrollCouriers('left')}
-            className={`absolute left-[4px] top-[8px] z-10 w-[32px] h-[32px] flex items-center justify-center bg-white rounded-[8px] shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] transition-opacity duration-150 ${
-              showScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        {/* Courier Chips Row - Only visible when Courier tab is active with multiple couriers (chips mode) */}
+        {!isDropdownMode && (
+          <div 
+            className={`relative px-[16px] pt-[8px] pb-[8px] transition-all duration-200 ease-out ${
+              activeTab === 'Courier' && hasMultipleCouriers 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 -translate-y-2 pointer-events-none'
             }`}
           >
-            <ChevronLeftIcon size={16} className="text-[#111318]" />
-          </button>
+            {/* Scroll Left Button */}
+            <button
+              onClick={() => scrollCouriers('left')}
+              className={`absolute left-[4px] top-[8px] z-10 w-[32px] h-[32px] flex items-center justify-center bg-white rounded-[8px] shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] transition-opacity duration-150 ${
+                showScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <ChevronLeftIcon size={16} className="text-[#111318]" />
+            </button>
 
-          {/* Courier Chips Container */}
+            {/* Courier Chips Container */}
+            <div 
+              ref={courierChipsRef}
+              className="flex gap-[8px] overflow-x-auto scrollbar-hide scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {couriers.map((courier) => (
+                <button
+                  key={courier.id}
+                  onClick={() => setSelectedCourierId(courier.id)}
+                  className={`flex items-center gap-[8px] h-[32px] px-[12px] rounded-full shrink-0 transition-all duration-150 ${
+                    selectedCourierId === courier.id
+                      ? 'bg-white border-2 border-[#111318]'
+                      : 'bg-white border border-[#d3d6d9] hover:border-[#9a9da3]'
+                  }`}
+                >
+                  {/* Avatar */}
+                  <div className="w-[24px] h-[24px] rounded-full overflow-hidden shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)]">
+                    <img 
+                      src={courier.avatarUrl} 
+                      alt={courier.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {/* Name */}
+                  <span className="text-[14px] leading-[20px] font-semibold text-[#111318] tracking-[-0.01px] whitespace-nowrap">
+                    {courier.name}
+                  </span>
+                  {/* Notification Badge - only show if not yet read and badge is visible */}
+                  {courier.notificationCount > 0 && !readCourierNotifications[selectedCase?.id] && chipBadgeVisible && (
+                    <div className="h-[16px] min-w-[16px] px-[5px] bg-[#eb1700] rounded-[100px] flex items-center justify-center">
+                      <span className="text-[12px] leading-[16px] font-semibold text-white tracking-[-0.01px]">
+                        {courier.notificationCount}
+                      </span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Scroll Right Button */}
+            <button
+              onClick={() => scrollCouriers('right')}
+              className={`absolute right-[4px] top-[8px] z-10 w-[32px] h-[32px] flex items-center justify-center bg-white rounded-[8px] shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] transition-opacity duration-150 ${
+                showScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <ChevronRightIcon size={16} className="text-[#111318]" />
+            </button>
+          </div>
+        )}
+
+        {/* Courier Dropdown - Only visible when Courier tab is active with dropdown mode */}
+        {isDropdownMode && (
           <div 
-            ref={courierChipsRef}
-            className="flex gap-[8px] overflow-x-auto scrollbar-hide scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className={`relative z-[100] px-[16px] pt-[4px] pb-[16px] transition-all duration-200 ease-out ${
+              activeTab === 'Courier' && hasMultipleCouriers 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 -translate-y-2 pointer-events-none'
+            }`}
+            ref={dropdownRef}
           >
-            {couriers.map((courier) => (
-              <button
-                key={courier.id}
-                onClick={() => setSelectedCourierId(courier.id)}
-                className={`flex items-center gap-[8px] h-[32px] px-[12px] rounded-full shrink-0 transition-all duration-150 ${
-                  selectedCourierId === courier.id
-                    ? 'bg-white border-2 border-[#111318]'
-                    : 'bg-white border border-[#d3d6d9] hover:border-[#9a9da3]'
-                }`}
-              >
-                {/* Avatar */}
-                <div className="w-[24px] h-[24px] rounded-full overflow-hidden shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)]">
-                  <img 
-                    src={courier.avatarUrl} 
-                    alt={courier.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {/* Name */}
-                <span className="text-[14px] leading-[20px] font-semibold text-[#111318] tracking-[-0.01px] whitespace-nowrap">
-                  {courier.name}
-                </span>
-                {/* Notification Badge - only show if not yet read and badge is visible */}
-                {courier.notificationCount > 0 && !readCourierNotifications[selectedCase?.id] && chipBadgeVisible && (
+            {/* Select Field */}
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full h-[36px] bg-white border border-[#d3d6d9] rounded-[8px] px-[12px] py-[4px] flex items-center gap-[8px] hover:border-[#9a9da3] transition-colors"
+            >
+              {/* Selected Courier Avatar */}
+              <div className="w-[24px] h-[24px] rounded-full overflow-hidden shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)]">
+                <img 
+                  src={couriers.find(c => c.id === selectedCourierId)?.avatarUrl || couriers[0]?.avatarUrl} 
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Selected Courier Name */}
+              <span className="flex-1 text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px] text-left">
+                {couriers.find(c => c.id === selectedCourierId)?.name || couriers[0]?.name}
+              </span>
+              {/* Notification Badge */}
+              {(() => {
+                const selectedCourier = couriers.find(c => c.id === selectedCourierId) || couriers[0];
+                return selectedCourier?.notificationCount > 0 && !readCourierNotifications[selectedCase?.id] && chipBadgeVisible && (
                   <div className="h-[16px] min-w-[16px] px-[5px] bg-[#eb1700] rounded-[100px] flex items-center justify-center">
                     <span className="text-[12px] leading-[16px] font-semibold text-white tracking-[-0.01px]">
-                      {courier.notificationCount}
+                      {selectedCourier.notificationCount}
                     </span>
                   </div>
-                )}
-              </button>
-            ))}
-          </div>
+                );
+              })()}
+              {/* Chevron Down */}
+              <ChevronDownIcon size={24} className="text-[#111318]" />
+            </button>
 
-          {/* Scroll Right Button */}
-          <button
-            onClick={() => scrollCouriers('right')}
-            className={`absolute right-[4px] top-[8px] z-10 w-[32px] h-[32px] flex items-center justify-center bg-white rounded-[8px] shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] transition-opacity duration-150 ${
-              showScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-          >
-            <ChevronRightIcon size={16} className="text-[#111318]" />
-          </button>
-        </div>
+            {/* Dropdown Popover */}
+            {isDropdownOpen && (
+              <div className="absolute left-[16px] right-[16px] top-[44px] bg-white rounded-[8px] shadow-[0px_4px_12px_0px_rgba(17,19,24,0.15)] py-[8px] z-[100]">
+                {couriers.map((courier) => (
+                  <button
+                    key={courier.id}
+                    onClick={() => {
+                      setSelectedCourierId(courier.id);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full h-[48px] px-[16px] flex items-center gap-[8px] hover:bg-[#f6f7f8] transition-colors"
+                  >
+                    {/* Avatar */}
+                    <div className="w-[24px] h-[24px] rounded-full overflow-hidden">
+                      <img 
+                        src={courier.avatarUrl} 
+                        alt={courier.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {/* Name */}
+                    <span className="flex-1 text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px] text-left">
+                      {courier.name}
+                    </span>
+                    {/* Notification Badge */}
+                    {courier.notificationCount > 0 && !readCourierNotifications[selectedCase?.id] && chipBadgeVisible && (
+                      <div className="w-[20px] h-[20px] bg-[#d91400] rounded-full flex items-center justify-center">
+                        <span className="text-[12px] leading-[18px] font-bold text-white tracking-[0.12px]">
+                          {courier.notificationCount}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ChatContentWrapper */}
