@@ -9,6 +9,9 @@ import RightSideCards from './RightSideCards';
 export default function CaseInboxLayout({ children }) {
   const [isCaseInboxOpen, setIsCaseInboxOpen] = useState(true);
   const [selectedCase, setSelectedCase] = useState(null);
+  
+  // Shared notification read state
+  const [readCourierNotifications, setReadCourierNotifications] = useState({}); // { caseId: true }
 
   const handleCaseInboxToggle = () => {
     setIsCaseInboxOpen(!isCaseInboxOpen);
@@ -20,6 +23,10 @@ export default function CaseInboxLayout({ children }) {
 
   const handleCaseSelect = (caseData) => {
     setSelectedCase(caseData);
+  };
+  
+  const handleMarkCourierNotificationsRead = (caseId) => {
+    setReadCourierNotifications(prev => ({ ...prev, [caseId]: true }));
   };
 
   return (
@@ -36,6 +43,7 @@ export default function CaseInboxLayout({ children }) {
             onToggle={handleCaseInboxToggle}
             onCaseSelect={handleCaseSelect}
             selectedCaseId={selectedCase?.id}
+            readCourierNotifications={readCourierNotifications}
           />
 
           {/* Main Content Area */}
@@ -47,7 +55,11 @@ export default function CaseInboxLayout({ children }) {
             <div className="flex flex-row flex-1 overflow-hidden">
               {/* ChatInterface - Resizable */}
               <div className="shrink-0">
-                {children && cloneElement(children, { selectedCase })}
+                {children && cloneElement(children, { 
+                  selectedCase,
+                  readCourierNotifications,
+                  onMarkCourierNotificationsRead: handleMarkCourierNotificationsRead
+                })}
               </div>
               
               {/* Right Side Cards - Flexible width */}

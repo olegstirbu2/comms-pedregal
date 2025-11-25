@@ -209,3 +209,15 @@ export function EditAddLineIcon({ size = 24, className = "" }) {
   );
 }
 
+export function VehicleBikeLineIcon({ size = 12, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path d="M4 11.5C4 12.8807 2.88071 14 1.5 14C0.119288 14 -1 12.8807 -1 11.5C-1 10.1193 0.119288 9 1.5 9C2.88071 9 4 10.1193 4 11.5Z" stroke="currentColor" strokeWidth="1.5" fill="none" transform="translate(2.5, 0)"/>
+      <path d="M4 11.5C4 12.8807 2.88071 14 1.5 14C0.119288 14 -1 12.8807 -1 11.5C-1 10.1193 0.119288 9 1.5 9C2.88071 9 4 10.1193 4 11.5Z" stroke="currentColor" strokeWidth="1.5" fill="none" transform="translate(10.5, 0)"/>
+      <path d="M4 11.5L6.5 5.5H9.5L11 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M7.5 5.5L5 2H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M6.5 8.5H9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+

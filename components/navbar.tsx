@@ -75,7 +75,7 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
                 <span className="text-white text-xs">Search</span>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-10">
+              <div className="flex items-center justify-center w-[40px] h-[40px]">
                 <SearchLineIcon size={16} className="text-white" />
               </div>
             )}
@@ -91,8 +91,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
                 }
                 onCaseInboxClick?.();
               }}
-              className={`flex items-center rounded-lg min-h-[48px] transition-colors relative ${
-                isExpanded ? 'px-2 bg-[#292e45] hover:bg-[#2f3551]' : 'justify-center bg-[#292e45]'
+              className={`flex items-center rounded-lg transition-colors relative ${
+                isExpanded ? 'px-2 min-h-[48px] bg-[#292e45] hover:bg-[#2f3551]' : 'justify-center w-[40px] h-[40px] bg-[#292e45]'
               }`}
             >
               <div className="relative">
@@ -122,8 +122,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
             {/* Tab 1 */}
             <button
-              className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${
-                isExpanded ? 'px-2' : 'justify-center'
+              className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
               }`}
             >
               <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
@@ -134,8 +134,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
             {/* Tab 2 */}
             <button
-              className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${
-                isExpanded ? 'px-2' : 'justify-center'
+              className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
               }`}
             >
               <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
@@ -146,8 +146,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
             {/* Performance */}
             <button
-              className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${
-                isExpanded ? 'px-2' : 'justify-center'
+              className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
               }`}
             >
               <ArrowTrendingUpIcon size={24} className="text-[#d3d6d9] shrink-0" />
@@ -162,8 +162,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
         <div className="mt-auto flex flex-col gap-2 px-3 pb-3">
           {/* Knowledge Base */}
           <button
-            className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${
-              isExpanded ? 'px-2' : 'justify-center'
+            className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
+              isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
             }`}
           >
             <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
@@ -174,8 +174,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
           {/* Notifications */}
           <button
-            className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${
-              isExpanded ? 'px-2' : 'justify-center'
+            className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
+              isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
             }`}
           >
             <NotifyLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
@@ -186,8 +186,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
           {/* To-do List */}
           <button
-            className={`flex items-center rounded-lg min-h-[40px] hover:bg-white/5 transition-colors ${
-              isExpanded ? 'px-2' : 'justify-center'
+            className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
+              isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
             }`}
           >
             <MiscellaneousLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
@@ -198,8 +198,8 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
           {/* Connected */}
           <div
-            className={`flex items-center rounded-2xl min-h-[48px] bg-[#1c1f31] ${
-              isExpanded ? 'px-2' : 'justify-center'
+            className={`flex items-center bg-[#1c1f31] ${
+              isExpanded ? 'px-2 min-h-[48px] rounded-2xl' : 'justify-center w-[40px] h-[40px] rounded-lg'
             }`}
           >
             <PhoneCallFillIcon size={24} className="text-white shrink-0" />
@@ -218,8 +218,12 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
             <div className={`bg-[#1c1f31] rounded-2xl p-2 ${isExpanded ? '' : 'flex justify-center items-center'}`}>
               {isExpanded ? (
                 <button className="flex items-center gap-2 w-full">
-                  <div className="relative w-8 h-8 flex-shrink-0 bg-[#eb1700] rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-semibold">A</span>
+                  <div className="relative w-8 h-8 flex-shrink-0 rounded-full overflow-hidden">
+                    <img 
+                      src="https://i.pravatar.cc/150?img=47" 
+                      alt="Ana J."
+                      className="w-full h-full object-cover"
+                    />
                     <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
@@ -228,8 +232,12 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
                   <ChevronDownIcon size={16} className="text-white flex-shrink-0" />
                 </button>
               ) : (
-                <div className="relative w-8 h-8 flex-shrink-0 bg-[#eb1700] rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-semibold">A</span>
+                <div className="relative w-8 h-8 flex-shrink-0 rounded-full overflow-hidden">
+                  <img 
+                    src="https://i.pravatar.cc/150?img=47" 
+                    alt="Ana J."
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
                 </div>
               )}

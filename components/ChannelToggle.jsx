@@ -19,8 +19,8 @@ export default function ChannelToggle({ selectedChannel, onChannelChange }) {
               text-xs font-semibold tracking-[-0.01px] leading-[18px]
               ${
                 selectedChannel === id
-                  ? 'bg-white text-[#111318] border-2 border-[#111318]'
-                  : 'text-[#51545d] hover:bg-white/50 border-2 border-transparent'
+                  ? 'bg-white text-[#111318] border border-[#E9EAEC]'
+                  : 'text-[#51545d] hover:bg-white/50 border border-transparent'
               }
             `}
           >

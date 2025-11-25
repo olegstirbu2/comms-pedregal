@@ -59,9 +59,23 @@ const MOCK_CASES = [
     slaSeverity: 'good',
     channelType: 'chat',
   },
+  {
+    id: 4,
+    name: 'Sofia Martinez',
+    timestamp: '45s',
+    category: 'Late Delivery',
+    message: 'Courier: I\'m stuck in traffic on the highway. Will be there in 10 mins.',
+    avatarUrl: 'https://i.pravatar.cc/150?img=26',
+    avatarInitials: 'SM',
+    audienceType: 'consumer',
+    notificationCount: 2,
+    isWoltPlus: false,
+    slaSeverity: 'good',
+    channelType: 'chat',
+  },
 ];
 
-export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId }) {
+export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId, readCourierNotifications = {} }) {
   const [isExpanded, setIsExpanded] = useState(true); // true = expanded (272px), false = collapsed (56px)
   const [selectedFilter, setSelectedFilter] = useState('Open');
   const [readCases, setReadCases] = useState(new Set([2, 3])); // Track which cases have been read - cases 2 and 3 are already read
@@ -254,12 +268,20 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
                   <div className="flex items-start justify-between gap-2">
                     {caseItem.message && (
                       <p className={`text-sm tracking-[-0.01px] line-clamp-1 leading-5 flex-1 ${
-                        readCases.has(caseItem.id) ? 'font-normal text-[#51545d]' : 'font-semibold text-[#191919]'
+                        // For courier messages, only mark as read when Courier tab is clicked
+                        caseItem.message.startsWith('Courier:')
+                          ? (readCourierNotifications[caseItem.id] ? 'font-normal text-[#51545d]' : 'font-semibold text-[#191919]')
+                          : (readCases.has(caseItem.id) ? 'font-normal text-[#51545d]' : 'font-semibold text-[#191919]')
                       }`}>
                         {caseItem.message}
                       </p>
                     )}
-                    {caseItem.notificationCount && !readCases.has(caseItem.id) && (
+                    {caseItem.notificationCount && (
+                      // For courier messages, check readCourierNotifications; otherwise check readCases
+                      caseItem.message?.startsWith('Courier:')
+                        ? !readCourierNotifications[caseItem.id]
+                        : !readCases.has(caseItem.id)
+                    ) && (
                       <div className="flex-shrink-0 bg-[#eb1700] text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center leading-none">
                         {caseItem.notificationCount}
                       </div>
