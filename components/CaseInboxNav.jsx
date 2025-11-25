@@ -159,7 +159,7 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
           </header>
 
           {/* Filter and Search */}
-          <div className="flex items-center justify-between px-3 py-3 border-b border-[#e4e4e4]">
+          <div className="flex items-center justify-between px-3 h-[64px] border-b border-[#e4e4e4]">
             <button
               onClick={() => {/* Toggle filter dropdown */}}
               className="h-8 px-3 flex items-center gap-1 rounded-lg border border-[#d3d6d9] hover:bg-gray-50 transition-colors"
