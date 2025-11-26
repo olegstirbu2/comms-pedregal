@@ -7,8 +7,8 @@ export default function RightSideCards() {
   }));
 
   return (
-    <div className="flex-1 bg-[#f6f7f8] p-[16px] overflow-y-auto">
-      <div className="grid gap-4" style={{ gridTemplateColumns: '2fr 1fr' }}>
+    <div className="flex-1 bg-[#f6f7f8] p-[16px] overflow-y-auto @container">
+      <div className="grid gap-4 grid-cols-1 @min-[560px]:grid-cols-[2fr_1fr]">
         {placeholderCards.map((card) => (
           <div
             key={card.id}
