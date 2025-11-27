@@ -183,3 +183,26 @@ export function CirclesFourIcon({ size = 16, className = "" }) {
   );
 }
 
+export function CloseCircleIcon({ size = 24, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M15 9L9 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M9 9L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+export function LanguageIcon({ size = 24, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M2.5 5H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M8.5 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M4.5 5C4.5 5 5.5 11 8.5 14C11.5 11 12.5 5 12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M5.5 9H11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M13 21L16.5 12L20 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M14 18H19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+

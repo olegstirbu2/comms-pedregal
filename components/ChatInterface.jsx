@@ -11,7 +11,9 @@ import {
   SmileyHappyLineIcon, 
   ChevronDownIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  CloseCircleIcon,
+  LanguageIcon
 } from './icons/CustomIcons';
 import {
   PersonUserLineIcon,
@@ -768,6 +770,11 @@ export default function ChatInterface({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
+  // Chat actions popover state
+  const [isActionsPopoverOpen, setIsActionsPopoverOpen] = useState(false);
+  const [isChatTranslationEnabled, setIsChatTranslationEnabled] = useState(false);
+  const actionsPopoverRef = useRef(null);
+  
   // Track previous case ID for deep linking logic
   const previousCaseIdRef = useRef(null);
   
@@ -910,6 +917,25 @@ export default function ChatInterface({
     }
   }, [isDropdownOpen]);
 
+  // Close actions popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionsPopoverRef.current && !actionsPopoverRef.current.contains(event.target)) {
+        setIsActionsPopoverOpen(false);
+      }
+    };
+
+    if (isActionsPopoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isActionsPopoverOpen]);
+  
+  // Close actions popover when switching channels
+  useEffect(() => {
+    setIsActionsPopoverOpen(false);
+  }, [selectedChannel]);
+
   // Update scroll buttons when courier tab is active
   useEffect(() => {
     if (activeTab === 'Courier' && hasMultipleCouriers && !isDropdownMode) {
@@ -1034,7 +1060,7 @@ export default function ChatInterface({
       {/* ChatWindowHeader - Tabs Section */}
       <div 
         className={`border-b border-[#e9eaec] bg-white shrink-0 transition-all duration-200 ease-out ${
-          isDropdownMode && activeTab === 'Courier' ? 'overflow-visible' : 'overflow-hidden'
+          (isDropdownMode && activeTab === 'Courier') || isActionsPopoverOpen ? 'overflow-visible' : 'overflow-hidden'
         }`}
         style={{ 
           height: activeTab === 'Courier' && hasMultipleCouriers 
@@ -1121,9 +1147,71 @@ export default function ChatInterface({
           </div>
 
           {/* Multi-action Icon */}
-          <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-            <CirclesFourIcon size={16} className="text-[#191919]" />
-          </button>
+          <div className="relative" ref={actionsPopoverRef}>
+            <button 
+              onClick={() => selectedChannel === 'chat' && setIsActionsPopoverOpen(!isActionsPopoverOpen)}
+              disabled={selectedChannel !== 'chat'}
+              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[8px] transition-all duration-150 ${
+                selectedChannel !== 'chat'
+                  ? 'opacity-40 cursor-not-allowed'
+                  : isActionsPopoverOpen
+                    ? 'bg-[rgba(17,19,24,0.1)]'
+                    : 'hover:bg-gray-50'
+              }`}
+            >
+              <CirclesFourIcon size={16} className="text-[#191919]" />
+            </button>
+            
+            {/* Actions Popover */}
+            {isActionsPopoverOpen && selectedChannel === 'chat' && (
+              <div className="absolute right-0 top-[40px] w-[240px] bg-white rounded-[8px] shadow-[0px_4px_12px_0px_rgba(17,19,24,0.15)] py-[8px] z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
+                {/* Chat Translation Row */}
+                <div className="flex items-center justify-between min-h-[48px] px-[16px]">
+                  <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                    Chat Translation
+                  </span>
+                  <button
+                    onClick={() => setIsChatTranslationEnabled(!isChatTranslationEnabled)}
+                    className={`relative w-[40px] h-[24px] rounded-full transition-colors duration-200 ${
+                      isChatTranslationEnabled ? 'bg-[#111318]' : 'bg-[#e9eaec]'
+                    }`}
+                  >
+                    <div className={`absolute top-[2px] w-[20px] h-[20px] bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                      isChatTranslationEnabled ? 'translate-x-[18px]' : 'translate-x-[2px]'
+                    }`}>
+                      {isChatTranslationEnabled && (
+                        <svg className="w-[10px] h-[10px] absolute top-[5px] left-[5px] text-[#111318]" viewBox="0 0 10 10" fill="none">
+                          <path d="M2 5L4 7L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+                </div>
+                
+                {/* Translation Language Row - Animated */}
+                <div 
+                  className={`overflow-hidden transition-all duration-200 ease-out ${
+                    isChatTranslationEnabled ? 'max-h-[48px] opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="flex items-center min-h-[48px] px-[16px] gap-[16px]">
+                    <LanguageIcon size={24} className="text-[#111318] flex-shrink-0" />
+                    <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                      Translation language
+                    </span>
+                  </div>
+                </div>
+                
+                {/* End Chat Row */}
+                <div className="flex items-center min-h-[48px] px-[16px] gap-[16px] hover:bg-gray-50 cursor-pointer transition-colors duration-150">
+                  <CloseCircleIcon size={24} className="text-[#111318] flex-shrink-0" />
+                  <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                    End Chat
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Courier Chips Row - Only visible when Courier tab is active with multiple couriers (chips mode) */}
