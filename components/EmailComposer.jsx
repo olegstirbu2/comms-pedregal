@@ -10,7 +10,7 @@ export default function EmailComposer({ contactInfo }) {
           {/* Contact Info - Avatar, Name, Email */}
           <div className="flex items-center gap-[12px]">
             {/* Avatar */}
-            <div className="relative w-[40px] h-[40px] rounded-full shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] shrink-0">
+            <div className="w-[40px] h-[40px] rounded-full shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] shrink-0">
               <div className="w-full h-full rounded-full bg-gradient-to-b from-[#d4ffcd] to-[#4adc34] flex items-center justify-center border-2 border-white overflow-hidden">
                 {contactInfo?.avatarUrl ? (
                   <img 
@@ -19,11 +19,6 @@ export default function EmailComposer({ contactInfo }) {
                     className="w-full h-full object-cover"
                   />
                 ) : null}
-              </div>
-              <div className="absolute bottom-0 right-0 w-[16px] h-[16px] bg-[#f6f7f8] rounded-full border-2 border-white flex items-center justify-center">
-                <span className="text-[8px] leading-[12px] font-semibold text-[#111318] tracking-[-0.0077px]">
-                  {contactInfo?.badge || 'C'}
-                </span>
               </div>
             </div>
 
@@ -40,18 +35,13 @@ export default function EmailComposer({ contactInfo }) {
 
           {/* From Field and Actions Row */}
           <div className="flex items-center justify-between">
-            {/* From Field */}
-            <div className="flex items-center gap-[8px]">
-              <span className="text-[14px] leading-[20px] font-normal text-[#51545d] tracking-[-0.01px]">
-                From:
+            {/* From Field - Tag Style */}
+            <button className="h-[20px] px-[8px] flex items-center gap-[4px] bg-white border border-[#d3d6d9] rounded-full hover:border-[#9a9da3] transition-colors">
+              <span className="text-[12px] leading-[18px] font-semibold text-[#111318] tracking-[-0.01px] whitespace-nowrap overflow-hidden text-ellipsis">
+                From: support@wolt.com
               </span>
-              <button className="flex items-center gap-[4px]">
-                <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
-                  support@wolt.com
-                </span>
-                <ChevronDownIcon size={16} className="text-[#111318]" />
-              </button>
-            </div>
+              <ChevronDownIcon size={12} className="text-[#111318] shrink-0" />
+            </button>
 
             {/* Compose Email Button */}
             <button

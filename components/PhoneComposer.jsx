@@ -10,7 +10,7 @@ export default function PhoneComposer({ contactInfo }) {
           {/* Contact Info - Avatar, Name, Number */}
           <div className="flex items-center gap-[12px]">
             {/* Avatar */}
-            <div className="relative w-[40px] h-[40px] rounded-full shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] shrink-0">
+            <div className="w-[40px] h-[40px] rounded-full shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] shrink-0">
               <div className="w-full h-full rounded-full bg-gradient-to-b from-[#d4ffcd] to-[#4adc34] flex items-center justify-center border-2 border-white overflow-hidden">
                 {contactInfo?.avatarUrl ? (
                   <img 
@@ -19,11 +19,6 @@ export default function PhoneComposer({ contactInfo }) {
                     className="w-full h-full object-cover"
                   />
                 ) : null}
-              </div>
-              <div className="absolute bottom-0 right-0 w-[16px] h-[16px] bg-[#f6f7f8] rounded-full border-2 border-white flex items-center justify-center">
-                <span className="text-[8px] leading-[12px] font-semibold text-[#111318] tracking-[-0.0077px]">
-                  {contactInfo?.badge || 'C'}
-                </span>
               </div>
             </div>
 
@@ -52,7 +47,7 @@ export default function PhoneComposer({ contactInfo }) {
           <div className="flex items-center justify-between">
             {/* Keyboard Button (Left) */}
             <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-              <KeyboardIcon size={16} className="text-[#191919]" />
+              <KeyboardIcon size={24} className="text-[#191919]" />
             </button>
 
             {/* Call Button (Right) - Icon Only */}

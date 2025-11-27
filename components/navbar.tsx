@@ -12,11 +12,14 @@ import {
   CaretDoubleLeftIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  ArrowTrendingUpIcon
+  ArrowTrendingUpIcon,
+  PeopleGroupLineIcon,
+  ListIcon,
+  ChevronRightIcon
 } from './icons/NavIcons';
 
 export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => void }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
 
   return (
@@ -26,11 +29,11 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
       }`}
     >
       {/* Main Content */}
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full p-[12px]">
         {/* Top Area */}
         <div className="flex flex-col">
-          {/* Header with Menu (64px height) */}
-          <div className={`flex items-center justify-between h-[64px] ${isExpanded ? 'px-3 pt-5 pb-3' : 'justify-center pt-5 pb-3'}`}>
+          {/* Header with Menu */}
+          <div className={`flex items-center justify-between pt-[8px] ${isExpanded ? '' : 'justify-center'}`}>
             <button 
               onClick={() => {
                 if (isExpanded) {
@@ -59,179 +62,198 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
 
           {/* Astra Help Desk Logo */}
           {isExpanded && (
-            <div className="px-3 py-4">
-              <div className="flex flex-col">
-                <p className="text-white text-xs opacity-50">Astra</p>
-                <p className="text-white text-lg font-bold leading-tight">Help Desk</p>
+            <div className="px-[10px] py-[11px]">
+              <div className="flex flex-col gap-1 items-start">
+                <img 
+                  src="/logos/astra-logo.png" 
+                  alt="Astra" 
+                  className="h-[12px] object-contain opacity-50"
+                  style={{ width: 'auto' }}
+                />
+                <p className="text-white text-[18px] font-bold leading-[22px] tracking-[-0.01px]">Help Desk</p>
               </div>
             </div>
           )}
 
-          {/* Search */}
-          <div className="mb-2 px-3">
-            {isExpanded ? (
-              <div className="h-9 rounded-2xl bg-[#1c1f31] flex items-center px-3 gap-2">
-                <SearchLineIcon size={16} className="text-white" />
-                <span className="text-white text-xs">Search</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center w-[40px] h-[40px]">
-                <SearchLineIcon size={16} className="text-white" />
-              </div>
-            )}
-          </div>
-
           {/* Navigation Items */}
-          <div className="flex flex-col gap-0.5 mt-2 px-3">
-            {/* Case Inbox */}
-            <button
-              onClick={() => {
-                if (isExpanded) {
-                  setIsInboxOpen(!isInboxOpen);
-                }
-                onCaseInboxClick?.();
-              }}
-              className={`flex items-center rounded-lg transition-colors relative ${
-                isExpanded ? 'px-2 min-h-[48px] bg-[#292e45] hover:bg-[#2f3551]' : 'justify-center w-[40px] h-[40px] bg-[#292e45]'
-              }`}
-            >
-              <div className="relative">
-                <SendFillIcon size={24} className="text-white shrink-0" />
-                {!isExpanded && (
-                  <div className="absolute -top-1 -right-1 bg-[#eb1700] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                    2
-                  </div>
-                )}
-              </div>
-              {isExpanded && (
-                <>
-                  <div className="flex items-center gap-3 ml-2 flex-1">
-                    <span className="text-white text-xs font-normal">Inbox</span>
-                    <div className="bg-[#eb1700] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      2
+          <div className="flex flex-col gap-[2px] pt-[28px]">
+            {/* Search */}
+            <div className="mb-[4px]">
+              {isExpanded ? (
+                <div className="h-[36px] rounded-[16px] bg-[#1c1f31] flex items-center px-[12px] gap-[8px]">
+                  <SearchLineIcon size={16} className="text-white" />
+                  <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Search</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center w-[40px] h-[40px]">
+                  <SearchLineIcon size={16} className="text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* Inbox */}
+            <div className={`${isExpanded ? 'bg-[#161929] rounded-[20px] overflow-hidden' : ''}`}>
+              <button
+                onClick={() => {
+                  if (isExpanded) {
+                    setIsInboxOpen(!isInboxOpen);
+                  }
+                  onCaseInboxClick?.();
+                }}
+                className={`flex items-center transition-colors relative w-full ${
+                  isExpanded ? 'px-[8px] h-[48px] bg-[#292e45] hover:bg-[#2f3551] rounded-[8px]' : 'justify-center w-[40px] h-[40px] bg-[#292e45] rounded-[8px]'
+                }`}
+              >
+                <div className="relative flex items-center">
+                  <SendFillIcon size={24} className="text-white shrink-0" />
+                  {!isExpanded && (
+                    <div className="absolute -top-1 -right-1 bg-[#eb1700] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      3
                     </div>
-                  </div>
-                  {isInboxOpen ? (
-                    <ChevronUpIcon size={16} className="text-white ml-auto" />
-                  ) : (
-                    <ChevronDownIcon size={16} className="text-white ml-auto" />
                   )}
-                </>
+                </div>
+                {isExpanded && (
+                  <>
+                    <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Inbox</span>
+                    <div className="flex items-center gap-[8px] ml-auto">
+                      <div className="bg-[#eb1700] text-white text-[12px] font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                        3
+                      </div>
+                      {isInboxOpen ? (
+                        <ChevronUpIcon size={16} className="text-white" />
+                      ) : (
+                        <ChevronDownIcon size={16} className="text-white" />
+                      )}
+                    </div>
+                  </>
+                )}
+              </button>
+              
+              {/* Inbox Sub-menu */}
+              {isExpanded && isInboxOpen && (
+                <div className="flex flex-col py-[4px]">
+                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                    <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">All</span>
+                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">6</span>
+                  </button>
+                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                    <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Open</span>
+                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">2</span>
+                  </button>
+                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                    <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Proactive</span>
+                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">1</span>
+                  </button>
+                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                    <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Snoozed</span>
+                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">2</span>
+                  </button>
+                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                    <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Follow-ups</span>
+                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">1</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Team */}
+            <button
+              className={`flex items-center rounded-[12px] hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              }`}
+            >
+              <PeopleGroupLineIcon size={24} className="text-white shrink-0" />
+              {isExpanded && (
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Team</span>
               )}
             </button>
 
-            {/* Tab 1 */}
+            {/* Queues */}
             <button
-              className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
-                isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              className={`flex items-center rounded-[12px] hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
               }`}
             >
-              <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
+              <ListIcon size={24} className="text-white shrink-0" />
               {isExpanded && (
-                <span className="text-white text-xs ml-2">Tab name</span>
-              )}
-            </button>
-
-            {/* Tab 2 */}
-            <button
-              className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
-                isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
-              }`}
-            >
-              <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
-              {isExpanded && (
-                <span className="text-white text-xs ml-2">Tab name</span>
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Queues</span>
               )}
             </button>
 
             {/* Performance */}
             <button
-              className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
-                isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              className={`flex items-center rounded-[12px] hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
               }`}
             >
               <ArrowTrendingUpIcon size={24} className="text-[#d3d6d9] shrink-0" />
               {isExpanded && (
-                <span className="text-white text-xs ml-2">Performance</span>
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Performance</span>
               )}
             </button>
           </div>
         </div>
 
         {/* Bottom Area */}
-        <div className="mt-auto flex flex-col gap-2 px-3 pb-3">
-          {/* Knowledge Base */}
-          <button
-            className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
-              isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
-            }`}
-          >
-            <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
-            {isExpanded && (
-              <span className="text-white text-xs ml-2">Knowledge Base</span>
-            )}
-          </button>
+        <div className="mt-auto flex flex-col gap-[8px]">
+          {/* Bottom Nav Items */}
+          <div className="flex flex-col gap-[2px]">
+            {/* Knowledge Base */}
+            <button
+              className={`flex items-center rounded-[12px] hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              }`}
+            >
+              <BookmarkLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
+              {isExpanded && (
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Knowledge Base</span>
+              )}
+            </button>
 
-          {/* Notifications */}
-          <button
-            className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
-              isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
-            }`}
-          >
-            <NotifyLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
-            {isExpanded && (
-              <span className="text-white text-xs ml-2">Notifications</span>
-            )}
-          </button>
+            {/* Notifications */}
+            <button
+              className={`flex items-center rounded-[12px] hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              }`}
+            >
+              <NotifyLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
+              {isExpanded && (
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Notifications</span>
+              )}
+            </button>
 
-          {/* To-do List */}
-          <button
-            className={`flex items-center rounded-lg hover:bg-white/5 transition-colors ${
-              isExpanded ? 'px-2 min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
-            }`}
-          >
-            <MiscellaneousLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
-            {isExpanded && (
-              <span className="text-white text-xs ml-2">To-do list</span>
-            )}
-          </button>
+            {/* To-do List */}
+            <button
+              className={`flex items-center rounded-[12px] hover:bg-white/5 transition-colors ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              }`}
+            >
+              <MiscellaneousLineIcon size={24} className="text-[#d3d6d9] shrink-0" />
+              {isExpanded && (
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">To-do list</span>
+              )}
+            </button>
+          </div>
 
           {/* Connected */}
           <div
             className={`flex items-center bg-[#1c1f31] ${
-              isExpanded ? 'px-2 min-h-[48px] rounded-2xl' : 'justify-center w-[40px] h-[40px] rounded-lg'
+              isExpanded ? 'px-[8px] min-h-[48px] rounded-[20px]' : 'justify-center w-[40px] h-[40px] rounded-[8px]'
             }`}
           >
             <PhoneCallFillIcon size={24} className="text-white shrink-0" />
             {isExpanded && (
-              <div className="flex items-center gap-3 ml-2 flex-1">
-                <span className="text-white text-xs">Connected</span>
-                <div className="w-5 h-5 bg-[#00855f] rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                </div>
+              <div className="flex items-center gap-[12px] ml-[8px] flex-1">
+                <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Connected</span>
+                <div className="w-[12px] h-[12px] bg-[#00832D] rounded-full ml-auto" />
               </div>
             )}
           </div>
 
-          {/* User Avatar */}
-          <div className="pt-2">
-            <div className={`bg-[#1c1f31] rounded-2xl p-2 ${isExpanded ? '' : 'flex justify-center items-center'}`}>
-              {isExpanded ? (
-                <button className="flex items-center gap-2 w-full">
-                  <div className="relative w-8 h-8 flex-shrink-0 rounded-full overflow-hidden">
-                    <img 
-                      src="https://i.pravatar.cc/150?img=47" 
-                      alt="Ana J."
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-white text-sm">Ana J.</p>
-                  </div>
-                  <ChevronDownIcon size={16} className="text-white flex-shrink-0" />
-                </button>
-              ) : (
+          {/* User Profile */}
+          <div className={`bg-[#1c1f31] rounded-[20px] p-[8px] ${isExpanded ? '' : 'flex justify-center items-center'}`}>
+            {isExpanded ? (
+              <button className="flex items-center gap-[8px] w-full">
                 <div className="relative w-8 h-8 flex-shrink-0 rounded-full overflow-hidden">
                   <img 
                     src="https://i.pravatar.cc/150?img=47" 
@@ -240,8 +262,22 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
                   />
                   <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
                 </div>
-              )}
-            </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Ana J.</p>
+                  <p className="text-[#D3D6D9] text-[12px] leading-[18px] tracking-[-0.01px]">Active • 24 min</p>
+                </div>
+                <ChevronRightIcon size={16} className="text-white flex-shrink-0" />
+              </button>
+            ) : (
+              <div className="relative w-8 h-8 flex-shrink-0 rounded-full overflow-hidden">
+                <img 
+                  src="https://i.pravatar.cc/150?img=47" 
+                  alt="Ana J."
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#00855f] rounded-full border-2 border-[#1c1f31]" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -249,5 +285,4 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
     </div>
   );
 }
-
 
