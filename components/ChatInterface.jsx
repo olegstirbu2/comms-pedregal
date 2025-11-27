@@ -768,6 +768,9 @@ export default function ChatInterface({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
+  // Track previous case ID for deep linking logic
+  const previousCaseIdRef = useRef(null);
+  
   // Get conversation data based on active tab and selected case
   const getConversationData = () => {
     if (activeTab === 'Courier') {
@@ -808,12 +811,58 @@ export default function ChatInterface({
   const [newMessageId, setNewMessageId] = useState(null);
 
   // Reset to Consumer tab and Chat channel when switching cases
+  // Also handles deep linking to notification tabs
   useEffect(() => {
-    setActiveTab('Consumer');
+    const isNewCase = previousCaseIdRef.current !== selectedCase?.id;
+    const notificationType = selectedCase?.notificationType;
+    
+    // Default resets
     setSelectedChannel('chat');
-    setSelectedCourierId(null);
     setChipBadgeVisible(true); // Reset chip badge visibility for new case
     setIsDropdownOpen(false); // Close dropdown when switching cases
+    
+    // Deep link to notification tab only when switching to a different case
+    if (isNewCase && notificationType) {
+      setActiveTab(notificationType);
+      
+      // For multi-courier cases, auto-select the first courier with notifications
+      if (notificationType === 'Courier') {
+        const multiCourierData = selectedCase?.id && MULTI_COURIER_CASES[selectedCase.id];
+        const isDropdown = multiCourierData?.displayMode === 'dropdown';
+        const courierList = isDropdown 
+          ? (multiCourierData?.couriers || [])
+          : (Array.isArray(multiCourierData) ? multiCourierData : []);
+        
+        // Find first courier with notifications
+        const courierWithNotification = courierList.find(c => c.notificationCount > 0);
+        if (courierWithNotification) {
+          setSelectedCourierId(courierWithNotification.id);
+        } else {
+          setSelectedCourierId(null);
+        }
+        
+        // Clear courier notifications after 0.5s delay (same timing as Jessica's consumer notification)
+        // First hide the chip badge
+        setTimeout(() => {
+          setChipBadgeVisible(false);
+        }, 500);
+        // Then mark as read in case list
+        if (selectedCase?.id && onMarkCourierNotificationsRead) {
+          setTimeout(() => {
+            onMarkCourierNotificationsRead(selectedCase.id);
+          }, 500);
+        }
+      } else {
+        setSelectedCourierId(null);
+      }
+    } else if (isNewCase) {
+      // No notification type - reset to Consumer tab
+      setActiveTab('Consumer');
+      setSelectedCourierId(null);
+    }
+    
+    // Update previous case ref
+    previousCaseIdRef.current = selectedCase?.id;
     
     // Clear consumer notification after 0.5 second delay when case is selected
     if (selectedCase?.id && consumerNotifications[selectedCase.id]) {

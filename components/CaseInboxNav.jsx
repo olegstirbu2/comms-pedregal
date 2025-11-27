@@ -73,20 +73,21 @@ const MOCK_CASES = [
     slaSeverity: 'good',
     channelType: 'chat',
   },
-  {
-    id: 5,
-    name: 'Marcus Chen',
-    timestamp: '1m',
-    category: 'Wrong Order',
-    message: 'Courier: Package has been picked up. ETA 15 minutes.',
-    avatarUrl: 'https://i.pravatar.cc/150?img=52',
-    avatarInitials: 'MC',
-    audienceType: 'consumer',
-    notificationCount: 2,
-    isWoltPlus: false,
-    slaSeverity: 'good',
-    channelType: 'chat',
-  },
+  // Marcus Chen case hidden - dropdown variant kept in code for future use
+  // {
+  //   id: 5,
+  //   name: 'Marcus Chen',
+  //   timestamp: '1m',
+  //   category: 'Wrong Order',
+  //   message: 'Courier: Package has been picked up. ETA 15 minutes.',
+  //   avatarUrl: 'https://i.pravatar.cc/150?img=52',
+  //   avatarInitials: 'MC',
+  //   audienceType: 'consumer',
+  //   notificationCount: 2,
+  //   isWoltPlus: false,
+  //   slaSeverity: 'good',
+  //   channelType: 'chat',
+  // },
 ];
 
 export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, selectedCaseId, readCourierNotifications = {} }) {
@@ -227,7 +228,17 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
                 onClick={() => {
                   // Mark case as read
                   setReadCases(prev => new Set([...prev, caseItem.id]));
-                  onCaseSelect?.(caseItem);
+                  
+                  // Detect notification type from message prefix
+                  let notificationType = null;
+                  if (caseItem.message?.startsWith('Courier:')) {
+                    notificationType = 'Courier';
+                  } else if (caseItem.message?.startsWith('Merchant:')) {
+                    notificationType = 'Merchant';
+                  }
+                  
+                  // Pass case with notification context
+                  onCaseSelect?.({ ...caseItem, notificationType });
                 }}
                 className={`
                   relative px-4 py-3 border-b border-[#e9eaec]
@@ -362,7 +373,17 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
                 role="listitem"
                 onClick={() => {
                   handleChevronClick();
-                  onCaseSelect?.(caseItem);
+                  
+                  // Detect notification type from message prefix
+                  let notificationType = null;
+                  if (caseItem.message?.startsWith('Courier:')) {
+                    notificationType = 'Courier';
+                  } else if (caseItem.message?.startsWith('Merchant:')) {
+                    notificationType = 'Merchant';
+                  }
+                  
+                  // Pass case with notification context
+                  onCaseSelect?.({ ...caseItem, notificationType });
                 }}
                 className={`
                   relative p-3 border-b border-[#e9eaec]
