@@ -36,20 +36,22 @@ export function TimestampTooltip({
   };
 
   const formatDate = (date: Date, is12h: boolean): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
     const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const seconds = date.getSeconds();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
 
-    const formattedMinutes = minutes.toString().padStart(2, '0');
-    const secString = `${seconds}sec`;
+    const dateStr = `${day}/${month}/${year}`;
 
     if (is12h) {
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const h12 = hours % 12 || 12;
-      return `${h12}:${formattedMinutes} ${secString} ${ampm}`;
+      return `${dateStr}, ${h12}:${minutes}:${seconds} ${ampm}`;
     } else {
       const h24 = hours.toString().padStart(2, '0');
-      return `${h24}:${formattedMinutes} ${secString}`;
+      return `${dateStr}, ${h24}:${minutes}:${seconds}`;
     }
   };
 
