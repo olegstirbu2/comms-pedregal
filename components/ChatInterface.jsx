@@ -23,6 +23,7 @@ import {
   MerchantLineIcon,
   VehicleBikeLineIcon
 } from './icons/NavIcons';
+import { TimestampTooltip } from './TimestampTooltip';
 import ChannelToggle from './ChannelToggle';
 import PhoneComposer from './PhoneComposer';
 import EmailComposer from './EmailComposer';
@@ -1550,7 +1551,12 @@ export default function ChatInterface({
                         isNewMessage ? 'animate-timestamp-fade' : ''
                       }`}>
                         <span className="text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] text-right">
-                          {message.timestamp}
+                          <TimestampTooltip 
+                            relativeTime={message.timestamp}
+                            is12Hour={conversationData.contactInfo.name.includes('Edeka')}
+                          >
+                            {message.timestamp}
+                          </TimestampTooltip>
                         </span>
                       </div>
                     </div>

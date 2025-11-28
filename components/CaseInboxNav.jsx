@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { TimestampTooltip } from './TimestampTooltip';
 import { 
   CaretDoubleLeftIcon,
   CaretDoubleRightIcon,
@@ -285,7 +286,12 @@ export default function CaseInboxNav({ isOpen = true, onToggle, onCaseSelect, se
                       </div>
                     </div>
                     <time className="text-xs text-[#606060] tracking-[-0.01px] ml-2 flex-shrink-0">
-                      {caseItem.timestamp}
+                      <TimestampTooltip 
+                        relativeTime={caseItem.timestamp}
+                        is12Hour={caseItem.name.includes('Edeka')}
+                      >
+                        {caseItem.timestamp}
+                      </TimestampTooltip>
                     </time>
                   </div>
 
