@@ -10,10 +10,13 @@ import {
   AddIcon, 
   SmileyHappyLineIcon, 
   ChevronDownIcon,
+  ChevronUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CloseCircleIcon,
-  LanguageIcon
+  LanguageIcon,
+  NotebookLineIcon,
+  EditAddLineIcon
 } from './icons/CustomIcons';
 import {
   PersonUserLineIcon,
@@ -775,6 +778,12 @@ export default function ChatInterface({
   const [isChatTranslationEnabled, setIsChatTranslationEnabled] = useState(false);
   const actionsPopoverRef = useRef(null);
   
+  // Composer mode state (chat or note) - persisted per contact
+  const [composerMode, setComposerMode] = useState('chat');
+  const [noteModeContacts, setNoteModeContacts] = useState({}); // { "caseId-tab": true }
+  const [isComposerSwitchOpen, setIsComposerSwitchOpen] = useState(false);
+  const composerSwitchRef = useRef(null);
+  
   // Track previous case ID for deep linking logic
   const previousCaseIdRef = useRef(null);
   
@@ -827,6 +836,13 @@ export default function ChatInterface({
     setSelectedChannel('chat');
     setChipBadgeVisible(true); // Reset chip badge visibility for new case
     setIsDropdownOpen(false); // Close dropdown when switching cases
+    setIsComposerSwitchOpen(false); // Close composer switch popover
+    
+    // Reset composer mode to chat when switching cases (unless contact has note mode saved)
+    if (isNewCase) {
+      const contactKey = `${selectedCase?.id}-Consumer`;
+      setComposerMode(noteModeContacts[contactKey] ? 'note' : 'chat');
+    }
     
     // Deep link to notification tab only when switching to a different case
     if (isNewCase && notificationType) {
@@ -931,10 +947,32 @@ export default function ChatInterface({
     }
   }, [isActionsPopoverOpen]);
   
+  // Close composer switch popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (composerSwitchRef.current && !composerSwitchRef.current.contains(event.target)) {
+        setIsComposerSwitchOpen(false);
+      }
+    };
+
+    if (isComposerSwitchOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isComposerSwitchOpen]);
+  
   // Close actions popover when switching channels
   useEffect(() => {
     setIsActionsPopoverOpen(false);
+    setIsComposerSwitchOpen(false);
   }, [selectedChannel]);
+  
+  // Reset composer mode when switching tabs (Consumer, Courier, Merchant)
+  useEffect(() => {
+    const contactKey = `${selectedCase?.id}-${activeTab}`;
+    setComposerMode(noteModeContacts[contactKey] ? 'note' : 'chat');
+    setIsComposerSwitchOpen(false);
+  }, [activeTab, selectedCase?.id]);
 
   // Update scroll buttons when courier tab is active
   useEffect(() => {
@@ -981,6 +1019,7 @@ export default function ChatInterface({
       text: inputValue,
       timestamp: 'Just now',
       avatarUrl: 'https://i.pravatar.cc/150?img=47',
+      isNote: composerMode === 'note', // Tag as note if in note mode
     };
 
     // Update messages first
@@ -1451,7 +1490,15 @@ export default function ChatInterface({
               <div className="flex flex-col gap-[16px] w-full">
                 {messages.map((message) => {
                 const isAgent = message.sender === 'agent';
+                const isNote = message.isNote;
                 const isNewMessage = message.id === newMessageId;
+
+                // Determine bubble background color
+                const getBubbleBackground = () => {
+                  if (isNote) return 'bg-[#fff6d4]'; // Yellow for notes
+                  if (isAgent) return 'bg-[#e3fbff]'; // Light blue for agent
+                  return 'bg-[#f6f7f8]'; // Gray for consumer
+                };
 
                 return (
                   <div 
@@ -1487,10 +1534,10 @@ export default function ChatInterface({
                     {/* Message Bubble */}
                     <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} w-[368px]`}>
                       <div
-                        className={`px-[20px] py-[16px] w-full ${
+                        className={`px-[24px] py-[16px] w-full ${getBubbleBackground()} ${
                           isAgent
-                            ? 'bg-[#e3fbff] rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'
-                            : 'bg-[#f6f7f8] rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'
+                            ? 'rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'
+                            : 'rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'
                         }`}
                       >
                         <p className="text-[14px] leading-[20px] font-normal text-[#191919] tracking-[-0.01px]">
@@ -1521,17 +1568,81 @@ export default function ChatInterface({
       {selectedChannel === 'chat' && (
         <div className="bg-white shrink-0 pb-[16px] px-[16px]">
           {/* ChatInput */}
-          <div className="border border-[#e9eaec] rounded-[16px] bg-white overflow-hidden">
-            <div className="p-[16px] flex flex-col gap-[16px]">
+          <div className={`border rounded-[16px] overflow-visible ${
+            composerMode === 'note' 
+              ? 'border-[#ffe591] bg-[#fff6d4]' 
+              : 'border-[#e9eaec] bg-white'
+          }`}>
+            <div className={`p-[16px] flex flex-col gap-[16px] rounded-[15px] ${
+              composerMode === 'note' ? 'bg-[#fff6d4]' : 'bg-white'
+            }`}>
                   {/* Primary Actions Row */}
-                  <div className="flex items-center justify-between">
-                    {/* Chat Button */}
-                    <button className="flex items-center gap-[4px] h-[32px] px-[12px] bg-[#f6f7f8] rounded-[8px]">
-                      <ChatDefaultLineIcon size={16} className="text-[#111318]" />
-                      <span className="text-[12px] leading-[18px] font-bold text-[#111318] tracking-[-0.01px]">
-                        Chat
-                      </span>
-                      <ChevronDownIcon size={16} className="text-[#111318]" />
+                  <div className="flex items-center justify-between relative" ref={composerSwitchRef}>
+                    {/* Composer Switch Popover - Positioned above toggle button */}
+                    {isComposerSwitchOpen && (
+                      <div className="absolute left-0 bottom-[40px] w-[240px] bg-white rounded-[8px] shadow-[0px_4px_12px_0px_rgba(17,19,24,0.15)] py-[8px] z-[100] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                        {/* Chat Option */}
+                        <button
+                          onClick={() => {
+                            const contactKey = `${selectedCase?.id}-${activeTab}`;
+                            setNoteModeContacts(prev => {
+                              const updated = { ...prev };
+                              delete updated[contactKey];
+                              return updated;
+                            });
+                            setComposerMode('chat');
+                            setIsComposerSwitchOpen(false);
+                          }}
+                          className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
+                        >
+                          <ChatDefaultLineIcon size={24} className="text-[#111318]" />
+                          <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                            Chat
+                          </span>
+                        </button>
+                        {/* Note Option */}
+                        <button
+                          onClick={() => {
+                            const contactKey = `${selectedCase?.id}-${activeTab}`;
+                            setNoteModeContacts(prev => ({ ...prev, [contactKey]: true }));
+                            setComposerMode('note');
+                            setIsComposerSwitchOpen(false);
+                          }}
+                          className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
+                        >
+                          <NotebookLineIcon size={24} className="text-[#111318]" />
+                          <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                            Note
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Mode Toggle Button */}
+                    <button 
+                      onClick={() => setIsComposerSwitchOpen(!isComposerSwitchOpen)}
+                      className="flex items-center gap-[4px] h-[32px] px-[12px] pr-[8px] bg-[#f6f7f8] rounded-[8px] hover:bg-[#eceef0] transition-colors"
+                    >
+                      {composerMode === 'chat' ? (
+                        <>
+                          <ChatDefaultLineIcon size={16} className="text-[#111318]" />
+                          <span className="text-[12px] leading-[18px] font-bold text-[#111318] tracking-[-0.01px]">
+                            Chat
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <NotebookLineIcon size={16} className="text-[#111318]" />
+                          <span className="text-[12px] leading-[18px] font-bold text-[#111318] tracking-[-0.01px]">
+                            Note
+                          </span>
+                        </>
+                      )}
+                      {isComposerSwitchOpen ? (
+                        <ChevronUpIcon size={16} className="text-[#292c32]" />
+                      ) : (
+                        <ChevronDownIcon size={16} className="text-[#292c32]" />
+                      )}
                     </button>
                   </div>
 
@@ -1543,34 +1654,44 @@ export default function ChatInterface({
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Type a message..."
+                  placeholder={composerMode === 'note' ? "Write your note here..." : "Write your message here..."}
                   className="text-[14px] leading-[20px] font-normal text-[#51545d] tracking-[-0.01px] bg-transparent border-none outline-none w-full max-h-[192px]"
-                  aria-label="Message input"
+                  aria-label={composerMode === 'note' ? "Note input" : "Message input"}
                 />
               </div>
 
                   {/* Actions Row */}
-                  <div className="flex items-center justify-between">
-                    {/* Lead Actions */}
-                    <div className="flex gap-[2px] items-center">
-                      <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                        <AddIcon size={16} className="text-[#191919]" />
-                      </button>
-                      <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                        <SmileyHappyLineIcon size={16} className="text-[#191919]" />
-                      </button>
-                      <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                        <PromoLineIcon size={16} className="text-[#191919]" />
-                      </button>
-                    </div>
+                  <div className={`flex items-center ${composerMode === 'note' ? 'justify-end' : 'justify-between'}`}>
+                    {/* Lead Actions - Only show in chat mode */}
+                    {composerMode === 'chat' && (
+                      <div className="flex gap-[2px] items-center">
+                        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                          <AddIcon size={16} className="text-[#191919]" />
+                        </button>
+                        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                          <SmileyHappyLineIcon size={16} className="text-[#191919]" />
+                        </button>
+                        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                          <PromoLineIcon size={16} className="text-[#191919]" />
+                        </button>
+                      </div>
+                    )}
 
                     {/* Send Button */}
                     <button
                       onClick={handleSendMessage}
-                      className="w-[40px] h-[40px] flex items-center justify-center rounded-[8px] bg-[#e7fef4] hover:bg-[#d0f5e6] transition-all"
-                      aria-label="Send message"
+                      className={`w-[40px] h-[40px] flex items-center justify-center rounded-[8px] transition-all ${
+                        composerMode === 'note'
+                          ? 'bg-[#ffe591] hover:bg-[#ffd84d]'
+                          : 'bg-[#e7fef4] hover:bg-[#d0f5e6]'
+                      }`}
+                      aria-label={composerMode === 'note' ? "Add note" : "Send message"}
                     >
-                      <SendFillIcon size={24} className="text-[#00855f] -rotate-45" />
+                      {composerMode === 'note' ? (
+                        <EditAddLineIcon size={24} className="text-[#784200]" />
+                      ) : (
+                        <SendFillIcon size={24} className="text-[#00855f] -rotate-45" />
+                      )}
                     </button>
                   </div>
             </div>
