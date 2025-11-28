@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ChatDefaultLineIcon, 
   PromoLineIcon, 
@@ -27,6 +27,9 @@ import { TimestampTooltip } from './TimestampTooltip';
 import ChannelToggle from './ChannelToggle';
 import PhoneComposer from './PhoneComposer';
 import EmailComposer from './EmailComposer';
+import EmojiPopover from './EmojiPopover';
+import EmojiModal from './EmojiModal';
+import { searchEmojis } from '@/lib/emoji-data';
 
 // Mock conversations by case ID
 const CASE_CONVERSATIONS = {
@@ -785,6 +788,14 @@ export default function ChatInterface({
   const [isComposerSwitchOpen, setIsComposerSwitchOpen] = useState(false);
   const composerSwitchRef = useRef(null);
   
+  // Emoji picker state
+  const [emojiPopoverOpen, setEmojiPopoverOpen] = useState(false);
+  const [emojiPopoverQuery, setEmojiPopoverQuery] = useState('');
+  const [emojiPopoverIndex, setEmojiPopoverIndex] = useState(0);
+  const [emojiModalOpen, setEmojiModalOpen] = useState(false);
+  const [emojiPopoverLeft, setEmojiPopoverLeft] = useState(0);
+  const measureSpanRef = useRef(null);
+  
   // Track previous case ID for deep linking logic
   const previousCaseIdRef = useRef(null);
   
@@ -968,6 +979,15 @@ export default function ChatInterface({
     setIsComposerSwitchOpen(false);
   }, [selectedChannel]);
   
+  // Cleanup hidden span on unmount
+  useEffect(() => {
+    return () => {
+      if (measureSpanRef.current && measureSpanRef.current.parentNode) {
+        measureSpanRef.current.parentNode.removeChild(measureSpanRef.current);
+      }
+    };
+  }, []);
+  
   // Reset composer mode when switching tabs (Consumer, Courier, Merchant)
   useEffect(() => {
     const contactKey = `${selectedCase?.id}-${activeTab}`;
@@ -1040,11 +1060,80 @@ export default function ChatInterface({
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Don't send message if emoji popover is open
+    if (e.key === 'Enter' && !e.shiftKey && !emojiPopoverOpen) {
       e.preventDefault();
       handleSendMessage();
     }
   };
+
+  // Handle input changes to detect emoji trigger (:)
+  const handleInputChange = useCallback((e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    // Check for emoji trigger pattern: :query (after typing at least 2 chars)
+    const colonMatch = value.match(/:([a-zA-Z_]{2,})$/);
+    
+    if (colonMatch) {
+      const query = colonMatch[1];
+      setEmojiPopoverQuery(query);
+      setEmojiPopoverOpen(true);
+      setEmojiPopoverIndex(0);
+      
+      // Calculate colon position for popover alignment
+      if (inputRef.current) {
+        // Get text before the colon
+        const colonIndex = value.lastIndexOf(':');
+        const textBeforeColon = value.substring(0, colonIndex);
+        
+        // Create a hidden span to measure text width
+        if (!measureSpanRef.current) {
+          measureSpanRef.current = document.createElement('span');
+          measureSpanRef.current.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-size:14px;font-family:inherit;';
+          document.body.appendChild(measureSpanRef.current);
+        }
+        
+        // Measure the width of text before colon
+        measureSpanRef.current.textContent = textBeforeColon || '';
+        const colonLeft = measureSpanRef.current.offsetWidth;
+        setEmojiPopoverLeft(colonLeft);
+      }
+    } else {
+      setEmojiPopoverOpen(false);
+      setEmojiPopoverQuery('');
+    }
+  }, []);
+
+  // Handle emoji selection from popover
+  const handleEmojiSelect = useCallback((emoji) => {
+    // Replace the :query with the emoji
+    const newValue = inputValue.replace(/:([a-zA-Z_]{2,})$/, emoji.emoji);
+    setInputValue(newValue);
+    setEmojiPopoverOpen(false);
+    setEmojiPopoverQuery('');
+    inputRef.current?.focus();
+  }, [inputValue]);
+
+  // Handle emoji selection from modal
+  const handleModalEmojiSelect = useCallback((emoji) => {
+    setInputValue(prev => prev + emoji.emoji);
+    setEmojiModalOpen(false);
+    inputRef.current?.focus();
+  }, []);
+
+  // Handle emoji popover navigation
+  const handleEmojiPopoverNavigate = useCallback((direction) => {
+    const results = searchEmojis(emojiPopoverQuery, 6);
+    if (typeof direction === 'number') {
+      // Mouse hover sets specific index
+      setEmojiPopoverIndex(direction);
+    } else if (direction === 'up') {
+      setEmojiPopoverIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (direction === 'down') {
+      setEmojiPopoverIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
+    }
+  }, [emojiPopoverQuery]);
 
   // Resize handlers
   const handleResizeStart = (e) => {
@@ -1290,7 +1379,7 @@ export default function ChatInterface({
                   }`}
                 >
                   {/* Avatar */}
-                  <div className="w-[24px] h-[24px] rounded-full overflow-hidden shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)]">
+                  <div className="w-[24px] h-[24px] rounded-full overflow-hidden border border-[#e4e4e4]">
                     <img 
                       src={courier.avatarUrl} 
                       alt={courier.name}
@@ -1341,7 +1430,7 @@ export default function ChatInterface({
               className="w-full h-[36px] bg-white border border-[#d3d6d9] rounded-[8px] px-[12px] py-[4px] flex items-center gap-[8px] hover:border-[#9a9da3] transition-colors"
             >
               {/* Selected Courier Avatar */}
-              <div className="w-[24px] h-[24px] rounded-full overflow-hidden shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)]">
+              <div className="w-[24px] h-[24px] rounded-full overflow-hidden border border-[#e4e4e4]">
                 <img 
                   src={couriers.find(c => c.id === selectedCourierId)?.avatarUrl || couriers[0]?.avatarUrl} 
                   alt=""
@@ -1380,7 +1469,7 @@ export default function ChatInterface({
                     className="w-full h-[48px] px-[16px] flex items-center gap-[8px] hover:bg-[#f6f7f8] transition-colors"
                   >
                     {/* Avatar */}
-                    <div className="w-[24px] h-[24px] rounded-full overflow-hidden">
+                    <div className="w-[24px] h-[24px] rounded-full overflow-hidden border border-[#e4e4e4]">
                       <img 
                         src={courier.avatarUrl} 
                         alt={courier.name}
@@ -1420,8 +1509,8 @@ export default function ChatInterface({
             {/* ChatWindowCard */}
             <div className="flex flex-col items-center gap-[16px] w-full shrink-0">
               {/* Avatar */}
-              <div className="relative w-[64px] h-[64px] rounded-full shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)]">
-                <div className={`w-full h-full rounded-full flex items-center justify-center border-2 border-white overflow-hidden ${
+              <div className="relative w-[64px] h-[64px] rounded-full">
+                <div className={`w-full h-full rounded-full flex items-center justify-center border border-[#e4e4e4] overflow-hidden ${
                   conversationData.contactInfo.badge === 'Mx' 
                     ? 'bg-white' 
                     : 'bg-gradient-to-b from-[#d4ffcd] to-[#4adc34]'
@@ -1437,7 +1526,7 @@ export default function ChatInterface({
                     />
                   ) : null}
                 </div>
-                <div className="absolute bottom-0 right-0 w-[24px] h-[24px] bg-[#f6f7f8] rounded-full border-2 border-white flex items-center justify-center">
+                <div className="absolute bottom-0 right-0 w-[24px] h-[24px] bg-[#f6f7f8] rounded-full border border-[#e4e4e4] flex items-center justify-center">
                   {conversationData.contactInfo.badge === 'Cx' && (
                     <PersonUserLineIcon size={12} className="text-[#111318]" />
                   )}
@@ -1493,11 +1582,15 @@ export default function ChatInterface({
                 const isAgent = message.sender === 'agent';
                 const isNote = message.isNote;
                 const isNewMessage = message.id === newMessageId;
+                
+                // Check if message contains only emojis (no other text)
+                const emojiRegex = /^[\p{Emoji}\s]+$/u;
+                const isEmojiOnly = emojiRegex.test(message.text.trim()) && message.text.trim().length > 0;
 
                 // Determine bubble background color
                 const getBubbleBackground = () => {
                   if (isNote) return 'bg-[#fff6d4]'; // Yellow for notes
-                  if (isAgent) return 'bg-[#e3fbff]'; // Light blue for agent
+                  if (isAgent) return 'bg-[#ecfcfc]'; // Light blue for agent (#ecfcfc matches Figma)
                   return 'bg-[#f6f7f8]'; // Gray for consumer
                 };
 
@@ -1514,8 +1607,8 @@ export default function ChatInterface({
                     {/* Chat Header with Avatar and Name */}
                     <div className={`flex gap-[8px] items-center ${isAgent ? 'flex-row-reverse' : 'flex-row'} w-[360px]`}>
                       {/* Avatar */}
-                      <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border-2 border-white shadow-[0px_1px_2px_0px_rgba(17,19,24,0.15)] shrink-0 overflow-hidden ${
-                        isAgent ? 'bg-[#e3fbff]' : 'bg-gradient-to-b from-[#d4ffcd] to-[#4adc34]'
+                      <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border border-[#e4e4e4] shrink-0 overflow-hidden ${
+                        isAgent ? 'bg-[#ecfcfc]' : 'bg-gradient-to-b from-[#d4ffcd] to-[#4adc34]'
                       } ${isNewMessage ? 'animate-avatar-pop' : ''}`}>
                         {message.avatarUrl ? (
                           <img 
@@ -1533,21 +1626,25 @@ export default function ChatInterface({
                     </div>
 
                     {/* Message Bubble */}
-                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} w-[368px]`}>
+                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly ? '' : 'w-[368px]'}`}>
                       <div
-                        className={`px-[24px] py-[16px] w-full ${getBubbleBackground()} ${
+                        className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${
                           isAgent
                             ? 'rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'
                             : 'rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'
                         }`}
                       >
-                        <p className="text-[14px] leading-[20px] font-normal text-[#191919] tracking-[-0.01px]">
+                        <p className={`${
+                          isEmojiOnly 
+                            ? 'text-[32px] leading-[40px] font-bold' 
+                            : 'text-[14px] leading-[20px] font-normal'
+                        } text-[#191919] tracking-[-0.01px]`}>
                           {message.text}
                         </p>
                       </div>
 
                       {/* Timestamp */}
-                      <div className={`flex items-center justify-end gap-[8px] mt-[4px] w-full ${
+                      <div className={`flex items-center justify-end gap-[8px] mt-[4px] ${isEmojiOnly ? '' : 'w-full'} ${
                         isNewMessage ? 'animate-timestamp-fade' : ''
                       }`}>
                         <span className="text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] text-right">
@@ -1652,17 +1749,28 @@ export default function ChatInterface({
                     </button>
                   </div>
 
-              {/* Text Input */}
-              <div className="flex flex-col gap-[8px]">
+              {/* Text Input with Emoji Popover */}
+              <div className="flex flex-col gap-[8px] relative">
                 <input
                   ref={inputRef}
                   type="text"
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
                   placeholder={composerMode === 'note' ? "Write your note here..." : "Write your message here..."}
                   className="text-[14px] leading-[20px] font-normal text-[#51545d] tracking-[-0.01px] bg-transparent border-none outline-none w-full max-h-[192px]"
                   aria-label={composerMode === 'note' ? "Note input" : "Message input"}
+                />
+                
+                {/* Emoji Popover - triggered by :query */}
+                <EmojiPopover
+                  isOpen={emojiPopoverOpen}
+                  emojis={searchEmojis(emojiPopoverQuery, 6)}
+                  selectedIndex={emojiPopoverIndex}
+                  onSelect={handleEmojiSelect}
+                  onClose={() => setEmojiPopoverOpen(false)}
+                  onNavigate={handleEmojiPopoverNavigate}
+                  leftPosition={emojiPopoverLeft}
                 />
               </div>
 
@@ -1674,7 +1782,10 @@ export default function ChatInterface({
                         <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
                           <AddIcon size={16} className="text-[#191919]" />
                         </button>
-                        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
+                        <button 
+                          onClick={() => setEmojiModalOpen(true)}
+                          className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50"
+                        >
                           <SmileyHappyLineIcon size={16} className="text-[#191919]" />
                         </button>
                         <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
@@ -1707,6 +1818,13 @@ export default function ChatInterface({
       
       {selectedChannel === 'phone' && <PhoneComposer contactInfo={conversationData.contactInfo} />}
       {selectedChannel === 'email' && <EmailComposer contactInfo={conversationData.contactInfo} />}
+      
+      {/* Emoji Modal - triggered by clicking emoji button */}
+      <EmojiModal
+        isOpen={emojiModalOpen}
+        onClose={() => setEmojiModalOpen(false)}
+        onSelect={handleModalEmojiSelect}
+      />
     </div>
   );
 }

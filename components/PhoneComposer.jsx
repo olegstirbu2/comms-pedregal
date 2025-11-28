@@ -10,8 +10,8 @@ export default function PhoneComposer({ contactInfo }) {
           {/* Contact Info - Avatar, Name, Number */}
           <div className="flex items-center gap-[12px]">
             {/* Avatar */}
-            <div className="w-[40px] h-[40px] rounded-full shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] shrink-0">
-              <div className="w-full h-full rounded-full bg-gradient-to-b from-[#d4ffcd] to-[#4adc34] flex items-center justify-center border-2 border-white overflow-hidden">
+            <div className="w-[40px] h-[40px] rounded-full shrink-0">
+              <div className="w-full h-full rounded-full bg-gradient-to-b from-[#d4ffcd] to-[#4adc34] flex items-center justify-center border border-[#e4e4e4] overflow-hidden">
                 {contactInfo?.avatarUrl ? (
                   <img 
                     src={contactInfo.avatarUrl} 
