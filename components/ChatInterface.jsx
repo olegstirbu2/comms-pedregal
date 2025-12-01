@@ -34,6 +34,7 @@ import PhoneComposer from './PhoneComposer';
 import EmailComposer from './EmailComposer';
 import EmojiPopover from './EmojiPopover';
 import EmojiModal from './EmojiModal';
+import ImageViewerModal from './ImageViewerModal';
 import { searchEmojis } from '@/lib/emoji-data';
 
 // Mock conversations by case ID
@@ -815,6 +816,13 @@ export default function ChatInterface({
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0);
   
+  // Image viewer modal state
+  const [imageViewerState, setImageViewerState] = useState({
+    isOpen: false,
+    images: [],
+    initialIndex: 0
+  });
+  
   // Get conversation data based on active tab and selected case
   const getConversationData = () => {
     if (activeTab === 'Courier') {
@@ -1265,6 +1273,23 @@ export default function ChatInterface({
       handleMultipleImageSelect(files);
     }
   }, [handleMultipleImageSelect]);
+
+  // Image viewer handlers
+  const handleImageClick = useCallback((images, index) => {
+    setImageViewerState({
+      isOpen: true,
+      images: images,
+      initialIndex: index
+    });
+  }, []);
+
+  const handleCloseImageViewer = useCallback(() => {
+    setImageViewerState({
+      isOpen: false,
+      images: [],
+      initialIndex: 0
+    });
+  }, []);
 
   // Resize handlers
   const handleResizeStart = (e) => {
@@ -1791,12 +1816,18 @@ export default function ChatInterface({
                       {message.imageUrls && message.imageUrls.length > 0 && (
                         <div className={`mb-[8px] ${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
                           {message.imageUrls.map((url, index) => (
-                            <img 
+                            <button
                               key={index}
-                              src={url} 
-                              alt={`Sent image ${index + 1}`}
-                              className="w-[120px] h-[120px] object-cover rounded-[12px]"
-                            />
+                              onClick={() => handleImageClick(message.imageUrls, index)}
+                              className="cursor-pointer hover:opacity-90 transition-opacity"
+                              aria-label={`View image ${index + 1} of ${message.imageUrls.length}`}
+                            >
+                              <img 
+                                src={url} 
+                                alt={`Sent image ${index + 1}`}
+                                className="w-[120px] h-[120px] object-cover rounded-[12px]"
+                              />
+                            </button>
                           ))}
                         </div>
                       )}
@@ -2099,6 +2130,14 @@ export default function ChatInterface({
         isOpen={emojiModalOpen}
         onClose={() => setEmojiModalOpen(false)}
         onSelect={handleModalEmojiSelect}
+      />
+      
+      {/* Image Viewer Modal - triggered by clicking message images */}
+      <ImageViewerModal
+        isOpen={imageViewerState.isOpen}
+        images={imageViewerState.images}
+        initialIndex={imageViewerState.initialIndex}
+        onClose={handleCloseImageViewer}
       />
     </div>
   );
