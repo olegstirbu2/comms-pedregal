@@ -1729,13 +1729,6 @@ export default function ChatInterface({
                 {conversationData.contactInfo.name}
               </p>
 
-              {/* Description */}
-              {conversationData.contactInfo.description && (
-                <p className="text-[12px] leading-[18px] font-normal text-[#51545d] tracking-[-0.01px] text-center">
-                  {conversationData.contactInfo.description}
-                </p>
-              )}
-
               {/* Language Tag */}
               <div className="flex items-center gap-[4px] h-[20px] px-[8px] bg-white border border-[#e9eaec] rounded-full">
                 <LanguageLineIcon size={12} className="text-[#111318]" />
