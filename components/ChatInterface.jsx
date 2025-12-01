@@ -16,7 +16,12 @@ import {
   CloseCircleIcon,
   LanguageIcon,
   NotebookLineIcon,
-  EditAddLineIcon
+  EditAddLineIcon,
+  PhotoLineIcon,
+  PhotosLineIcon,
+  MenuEditLineIcon,
+  TrashLineIcon,
+  UploadLineIcon
 } from './icons/CustomIcons';
 import {
   PersonUserLineIcon,
@@ -799,6 +804,17 @@ export default function ChatInterface({
   // Track previous case ID for deep linking logic
   const previousCaseIdRef = useRef(null);
   
+  // Add content popover state
+  const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
+  const addPopoverRef = useRef(null);
+  
+  // Image upload state (supports multiple images)
+  const [pendingImages, setPendingImages] = useState([]); // [{ id, preview, progress, isUploading }]
+  const [isDragging, setIsDragging] = useState(false);
+  const [hoveredImageId, setHoveredImageId] = useState(null);
+  const fileInputRef = useRef(null);
+  const dragCounterRef = useRef(0);
+  
   // Get conversation data based on active tab and selected case
   const getConversationData = () => {
     if (activeTab === 'Courier') {
@@ -977,7 +993,22 @@ export default function ChatInterface({
   useEffect(() => {
     setIsActionsPopoverOpen(false);
     setIsComposerSwitchOpen(false);
+    setIsAddPopoverOpen(false);
   }, [selectedChannel]);
+  
+  // Close add content popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (addPopoverRef.current && !addPopoverRef.current.contains(event.target)) {
+        setIsAddPopoverOpen(false);
+      }
+    };
+
+    if (isAddPopoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isAddPopoverOpen]);
   
   // Cleanup hidden span on unmount
   useEffect(() => {
@@ -1031,7 +1062,13 @@ export default function ChatInterface({
   }, [messages]);
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    // Allow sending if there's text OR pending images
+    if (!inputValue.trim() && pendingImages.length === 0) return;
+    // Don't send if any image is still uploading
+    if (pendingImages.some(img => img.isUploading)) return;
+
+    // Get array of image URLs from pending images
+    const imageUrls = pendingImages.map(img => img.preview);
 
     const newMessage = {
       id: Date.now(), // Use timestamp for unique ID
@@ -1041,11 +1078,13 @@ export default function ChatInterface({
       timestamp: 'Just now',
       avatarUrl: 'https://i.pravatar.cc/150?img=47',
       isNote: composerMode === 'note', // Tag as note if in note mode
+      imageUrls: imageUrls.length > 0 ? imageUrls : null, // Include images array if present
     };
 
     // Update messages first
     setMessages(prev => [...prev, newMessage]);
     setInputValue('');
+    setPendingImages([]); // Clear pending images after sending
     
     // Trigger animation on next frame to ensure DOM is ready
     requestAnimationFrame(() => {
@@ -1135,6 +1174,98 @@ export default function ChatInterface({
     }
   }, [emojiPopoverQuery]);
 
+  // Image upload handlers (supports multiple images)
+  const simulateUploadProgress = useCallback((imageId, preview) => {
+    // Add new image to the array
+    setPendingImages(prev => [...prev, { id: imageId, preview, progress: 0, isUploading: true }]);
+    
+    // Simulate upload progress over 2 seconds
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress >= 100) {
+        clearInterval(interval);
+        setPendingImages(prev => prev.map(img => 
+          img.id === imageId ? { ...img, progress: 100, isUploading: false } : img
+        ));
+      } else {
+        setPendingImages(prev => prev.map(img => 
+          img.id === imageId ? { ...img, progress } : img
+        ));
+      }
+    }, 200);
+  }, []);
+
+  const handleImageSelect = useCallback((file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    
+    const imageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      simulateUploadProgress(imageId, e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }, [simulateUploadProgress]);
+
+  const handleMultipleImageSelect = useCallback((files) => {
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith('image/')) {
+        handleImageSelect(file);
+      }
+    });
+    setIsAddPopoverOpen(false);
+  }, [handleImageSelect]);
+
+  const handleFileInputChange = useCallback((e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleMultipleImageSelect(files);
+    }
+    // Reset file input so same file can be selected again
+    e.target.value = '';
+  }, [handleMultipleImageSelect]);
+
+  const handleRemoveImage = useCallback((imageId) => {
+    setPendingImages(prev => prev.filter(img => img.id !== imageId));
+    setHoveredImageId(null);
+  }, []);
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounterRef.current = 0;
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleMultipleImageSelect(files);
+    }
+  }, [handleMultipleImageSelect]);
+
   // Resize handlers
   const handleResizeStart = (e) => {
     setIsResizing(true);
@@ -1178,9 +1309,38 @@ export default function ChatInterface({
   return (
     <div 
       ref={chatContainerRef}
-      className="relative flex flex-col h-full bg-white shrink-0 border-r border-[#e9eaec]"
+      className={`relative flex flex-col h-full bg-white shrink-0 border-r border-[#e9eaec] ${isDragging ? 'cursor-copy' : ''}`}
       style={{ width: `${chatWidth}px` }}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
+      {/* Drag and Drop Overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none">
+          {/* Semi-transparent background */}
+          <div className="absolute inset-0 bg-white z-0" />
+          {/* Drop zone */}
+          <div className="relative z-10 flex flex-col items-center gap-[8px] p-[56px] border border-dashed border-[rgba(17,19,24,0.5)] rounded-[24px]">
+            <UploadLineIcon size={64} className="text-[#111318]" />
+            <span className="text-[18px] leading-[22px] font-bold text-[#111318] tracking-[-0.01px]">
+              Drop images here
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* Hidden file input for image upload (supports multiple) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
+      
       {/* Resize Handle - Right Edge */}
       <div
         className="absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-transparent hover:bg-blue-400 cursor-col-resize hover:transition-all z-50"
@@ -1626,25 +1786,42 @@ export default function ChatInterface({
                     </div>
 
                     {/* Message Bubble */}
-                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly ? '' : 'w-[368px]'}`}>
-                      <div
-                        className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${
-                          isAgent
-                            ? 'rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'
-                            : 'rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'
-                        }`}
-                      >
-                        <p className={`${
-                          isEmojiOnly 
-                            ? 'text-[32px] leading-[40px] font-bold' 
-                            : 'text-[14px] leading-[20px] font-normal'
-                        } text-[#191919] tracking-[-0.01px]`}>
-                          {message.text}
-                        </p>
-                      </div>
+                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length ? '' : 'w-[368px]'}`}>
+                      {/* Images (if present) - 2-column grid for multiple */}
+                      {message.imageUrls && message.imageUrls.length > 0 && (
+                        <div className={`mb-[8px] ${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
+                          {message.imageUrls.map((url, index) => (
+                            <img 
+                              key={index}
+                              src={url} 
+                              alt={`Sent image ${index + 1}`}
+                              className="w-[120px] h-[120px] object-cover rounded-[12px]"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Text Bubble (only if there's text) */}
+                      {message.text && (
+                        <div
+                          className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${
+                            isAgent
+                              ? 'rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'
+                              : 'rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'
+                          }`}
+                        >
+                          <p className={`${
+                            isEmojiOnly 
+                              ? 'text-[32px] leading-[40px] font-bold' 
+                              : 'text-[14px] leading-[20px] font-normal'
+                          } text-[#191919] tracking-[-0.01px]`}>
+                            {message.text}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Timestamp */}
-                      <div className={`flex items-center justify-end gap-[8px] mt-[4px] ${isEmojiOnly ? '' : 'w-full'} ${
+                      <div className={`flex items-center justify-end gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length ? '' : 'w-full'} ${
                         isNewMessage ? 'animate-timestamp-fade' : ''
                       }`}>
                         <span className="text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] text-right">
@@ -1749,6 +1926,49 @@ export default function ChatInterface({
                     </button>
                   </div>
 
+              {/* Image Preview in Composer (horizontal row for multiple images) */}
+              {pendingImages.length > 0 && (
+                <div className="flex gap-[8px] items-start flex-wrap">
+                  {pendingImages.map((image) => (
+                    <div key={image.id} className="flex flex-col gap-[8px] items-start">
+                      <div 
+                        className="relative w-[64px] h-[64px] rounded-[12px]"
+                        onMouseEnter={() => setHoveredImageId(image.id)}
+                        onMouseLeave={() => setHoveredImageId(null)}
+                      >
+                        {/* Image thumbnail */}
+                        <img 
+                          src={image.preview} 
+                          alt="Upload preview"
+                          className={`w-full h-full object-cover rounded-[12px] ${
+                            image.isUploading ? 'opacity-60' : 'opacity-100'
+                          }`}
+                        />
+                        {/* Delete button on hover (only show when not uploading) - centered */}
+                        {hoveredImageId === image.id && !image.isUploading && (
+                          <button
+                            onClick={() => handleRemoveImage(image.id)}
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32px] h-[32px] bg-white rounded-[8px] flex items-center justify-center shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] hover:bg-[#f6f7f8] transition-colors"
+                            aria-label="Remove image"
+                          >
+                            <TrashLineIcon size={16} className="text-black" />
+                          </button>
+                        )}
+                      </div>
+                      {/* Progress bar while uploading */}
+                      {image.isUploading && (
+                        <div className="w-[64px] h-[4px] bg-[#e9eaec] rounded-[2px] overflow-hidden">
+                          <div 
+                            className="h-full bg-[#111318] rounded-r-full transition-all duration-200"
+                            style={{ width: `${image.progress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Text Input with Emoji Popover */}
               <div className="flex flex-col gap-[8px] relative">
                 <input
@@ -1779,9 +1999,64 @@ export default function ChatInterface({
                     {/* Lead Actions - Only show in chat mode */}
                     {composerMode === 'chat' && (
                       <div className="flex gap-[2px] items-center">
-                        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50">
-                          <AddIcon size={16} className="text-[#191919]" />
-                        </button>
+                        {/* Add Content Button with Popover */}
+                        <div className="relative" ref={addPopoverRef}>
+                          <button 
+                            onClick={() => setIsAddPopoverOpen(!isAddPopoverOpen)}
+                            className={`w-[32px] h-[32px] flex items-center justify-center rounded-[8px] transition-all ${
+                              isAddPopoverOpen ? 'bg-[rgba(17,19,24,0.1)]' : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            <AddIcon size={16} className="text-[#191919]" />
+                          </button>
+                          
+                          {/* Add Content Popover */}
+                          {isAddPopoverOpen && (
+                            <div className="absolute left-0 bottom-[40px] w-[240px] bg-white rounded-[8px] shadow-[0px_4px_12px_0px_rgba(17,19,24,0.15)] py-[8px] z-[100] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                              {/* GIF Option */}
+                              <button
+                                onClick={() => {
+                                  // Handle add GIF
+                                  setIsAddPopoverOpen(false);
+                                }}
+                                className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
+                              >
+                                <PhotosLineIcon size={24} className="text-[#111318]" />
+                                <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                                  GIF
+                                </span>
+                              </button>
+                              
+                              {/* Image Option */}
+                              <button
+                                onClick={() => {
+                                  fileInputRef.current?.click();
+                                  setIsAddPopoverOpen(false);
+                                }}
+                                className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
+                              >
+                                <PhotoLineIcon size={24} className="text-[#111318]" />
+                                <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                                  Image
+                                </span>
+                              </button>
+                              
+                              {/* Template Option */}
+                              <button
+                                onClick={() => {
+                                  // Handle add Template
+                                  setIsAddPopoverOpen(false);
+                                }}
+                                className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
+                              >
+                                <MenuEditLineIcon size={24} className="text-[#111318]" />
+                                <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
+                                  Template
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         <button 
                           onClick={() => setEmojiModalOpen(true)}
                           className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-gray-50"
