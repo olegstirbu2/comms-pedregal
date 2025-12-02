@@ -1845,10 +1845,10 @@ export default function ChatInterface({
                       )}
 
                       {/* Timestamp */}
-                      <div className={`flex items-center justify-end gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length ? '' : 'w-full'} ${
+                      <div className={`flex items-center ${isAgent ? 'justify-end' : 'justify-start'} gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length ? '' : 'w-full'} ${
                         isNewMessage ? 'animate-timestamp-fade' : ''
                       }`}>
-                        <span className="text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] text-right">
+                        <span className={`text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] ${isAgent ? 'text-right' : 'text-left'}`}>
                           <TimestampTooltip 
                             relativeTime={message.timestamp}
                             is12Hour={conversationData.contactInfo.name.includes('Edeka')}
