@@ -35,6 +35,7 @@ import EmailComposer from './EmailComposer';
 import EmojiPopover from './EmojiPopover';
 import EmojiModal from './EmojiModal';
 import ImageViewerModal from './ImageViewerModal';
+import GifModal from './GifModal';
 import { searchEmojis } from '@/lib/emoji-data';
 
 // Mock conversations by case ID
@@ -802,6 +803,9 @@ export default function ChatInterface({
   const [emojiPopoverLeft, setEmojiPopoverLeft] = useState(0);
   const measureSpanRef = useRef(null);
   
+  // GIF picker state
+  const [gifModalOpen, setGifModalOpen] = useState(false);
+  
   // Track previous case ID for deep linking logic
   const previousCaseIdRef = useRef(null);
   
@@ -1168,6 +1172,34 @@ export default function ChatInterface({
     setEmojiModalOpen(false);
     inputRef.current?.focus();
   }, []);
+
+  // Handle GIF selection from modal
+  const handleGifSelect = useCallback((gifUrl) => {
+    const newMessage = {
+      id: Date.now(),
+      sender: 'agent',
+      senderName: 'Ana J.',
+      text: '', // GIF-only message
+      timestamp: 'Just now',
+      avatarUrl: 'https://i.pravatar.cc/150?img=47',
+      isNote: composerMode === 'note',
+      gifUrl: gifUrl,
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+    setGifModalOpen(false);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+      setNewMessageId(newMessage.id);
+      inputRef.current?.focus();
+    });
+    
+    // Clear the new message flag after animation completes
+    setTimeout(() => {
+      setNewMessageId(null);
+    }, 500);
+  }, [composerMode]);
 
   // Handle emoji popover navigation
   const handleEmojiPopoverNavigate = useCallback((direction) => {
@@ -1804,7 +1836,24 @@ export default function ChatInterface({
                     </div>
 
                     {/* Message Bubble */}
-                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length ? '' : 'w-[368px]'}`}>
+                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-[368px]'}`}>
+                      {/* GIF (if present) */}
+                      {message.gifUrl && (
+                        <div className="mb-[8px]">
+                          <button
+                            onClick={() => handleImageClick([message.gifUrl], 0)}
+                            className="cursor-pointer hover:opacity-90 transition-opacity"
+                            aria-label="View GIF"
+                          >
+                            <img 
+                              src={message.gifUrl} 
+                              alt="Sent GIF"
+                              className="w-[120px] h-[120px] object-cover rounded-[12px]"
+                            />
+                          </button>
+                        </div>
+                      )}
+                      
                       {/* Images (if present) - 2-column grid for multiple */}
                       {message.imageUrls && message.imageUrls.length > 0 && (
                         <div className={`mb-[8px] ${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
@@ -1845,7 +1894,7 @@ export default function ChatInterface({
                       )}
 
                       {/* Timestamp */}
-                      <div className={`flex items-center ${isAgent ? 'justify-end' : 'justify-start'} gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length ? '' : 'w-full'} ${
+                      <div className={`flex items-center ${isAgent ? 'justify-end' : 'justify-start'} gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-full'} ${
                         isNewMessage ? 'animate-timestamp-fade' : ''
                       }`}>
                         <span className={`text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] ${isAgent ? 'text-right' : 'text-left'}`}>
@@ -2040,7 +2089,7 @@ export default function ChatInterface({
                               {/* GIF Option */}
                               <button
                                 onClick={() => {
-                                  // Handle add GIF
+                                  setGifModalOpen(true);
                                   setIsAddPopoverOpen(false);
                                 }}
                                 className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
@@ -2123,6 +2172,13 @@ export default function ChatInterface({
         isOpen={emojiModalOpen}
         onClose={() => setEmojiModalOpen(false)}
         onSelect={handleModalEmojiSelect}
+      />
+      
+      {/* GIF Modal - triggered by clicking GIF button */}
+      <GifModal
+        isOpen={gifModalOpen}
+        onClose={() => setGifModalOpen(false)}
+        onSelect={handleGifSelect}
       />
       
       {/* Image Viewer Modal - triggered by clicking message images */}
