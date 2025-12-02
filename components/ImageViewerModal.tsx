@@ -181,9 +181,9 @@ export default function ImageViewerModal({
       <div 
         className="relative z-[201] flex items-center justify-center animate-in zoom-in-95 duration-200"
         style={{
-          marginTop: '88px',
-          marginBottom: '88px',
-          maxHeight: 'calc(100vh - 88px - 88px)',
+          marginTop: '96px',
+          marginBottom: '96px',
+          maxHeight: 'calc(100vh - 192px)',
           maxWidth: '100vw',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -192,7 +192,7 @@ export default function ImageViewerModal({
           key={currentIndex}
           src={images[currentIndex]}
           alt={`Image ${currentIndex + 1} of ${images.length}`}
-          className="max-w-[828px] max-h-full object-contain rounded-[24px] transition-all duration-200 ease-out animate-in fade-in zoom-in-95"
+          className="max-w-full max-h-full object-contain rounded-[24px] transition-all duration-200 ease-out animate-in fade-in zoom-in-95"
           style={{
             transform: `scale(${zoomLevel})`,
             transformOrigin: 'center center',
