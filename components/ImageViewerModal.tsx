@@ -179,11 +179,11 @@ export default function ImageViewerModal({
 
       {/* Image Container */}
       <div 
-        className="relative z-[201] flex items-center justify-center animate-in zoom-in-95 duration-200"
+        className="relative z-[201] flex items-center justify-center animate-in zoom-in-95 duration-200 overflow-auto"
         style={{
           marginTop: '96px',
           marginBottom: '96px',
-          maxHeight: 'calc(100vh - 192px)',
+          height: 'calc(100vh - 192px)',
           maxWidth: '100vw',
         }}
         onClick={(e) => e.stopPropagation()}
