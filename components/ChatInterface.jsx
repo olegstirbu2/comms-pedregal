@@ -35,6 +35,7 @@ import EmailComposer from './EmailComposer';
 import EmojiPopover from './EmojiPopover';
 import EmojiModal from './EmojiModal';
 import ImageViewerModal from './ImageViewerModal';
+import DraggableImageModal from './DraggableImageModal';
 import GifModal from './GifModal';
 import { searchEmojis } from '@/lib/emoji-data';
 
@@ -2239,12 +2240,22 @@ export default function ChatInterface({
       />
       
       {/* Image Viewer Modal - triggered by clicking message images */}
-      <ImageViewerModal
-        isOpen={imageViewerState.isOpen}
-        images={imageViewerState.images}
-        initialIndex={imageViewerState.initialIndex}
-        onClose={handleCloseImageViewer}
-      />
+      {/* Use DraggableImageModal for Edeka case (ID 2), standard ImageViewerModal for others */}
+      {selectedCase?.id === 2 ? (
+        <DraggableImageModal
+          isOpen={imageViewerState.isOpen}
+          images={imageViewerState.images}
+          initialIndex={imageViewerState.initialIndex}
+          onClose={handleCloseImageViewer}
+        />
+      ) : (
+        <ImageViewerModal
+          isOpen={imageViewerState.isOpen}
+          images={imageViewerState.images}
+          initialIndex={imageViewerState.initialIndex}
+          onClose={handleCloseImageViewer}
+        />
+      )}
     </div>
   );
 }
