@@ -1788,7 +1788,7 @@ export default function ChatInterface({
             {/* Chat Messages - Only show in chat mode */}
             {selectedChannel === 'chat' && (
               <div className="flex flex-col gap-[16px] w-full">
-                {messages.map((message) => {
+                {messages.map((message, index) => {
                 const isAgent = message.sender === 'agent';
                 const isNote = message.isNote;
                 const isNewMessage = message.id === newMessageId;
@@ -1796,6 +1796,45 @@ export default function ChatInterface({
                 // Check if message contains only emojis (no other text)
                 const emojiRegex = /^[\p{Emoji}\s]+$/u;
                 const isEmojiOnly = emojiRegex.test(message.text.trim()) && message.text.trim().length > 0;
+
+                // Check if this message should be grouped with previous message
+                const prevMessage = index > 0 ? messages[index - 1] : null;
+                const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
+                
+                // Helper to parse timestamp (assumes format like "2m", "45s", "Just now", "1m ∙ Sent")
+                const parseTimestamp = (timestamp) => {
+                  if (!timestamp) return null;
+                  // Remove " ∙ Sent" suffix if present
+                  const cleanTime = timestamp.replace(/\s*∙\s*Sent$/, '').trim();
+                  if (cleanTime === 'Just now') return 0;
+                  const match = cleanTime.match(/^(\d+)(s|m|h)$/);
+                  if (!match) return null;
+                  const value = parseInt(match[1]);
+                  const unit = match[2];
+                  if (unit === 's') return value;
+                  if (unit === 'm') return value * 60;
+                  if (unit === 'h') return value * 3600;
+                  return null;
+                };
+                
+                const shouldGroupWithPrev = prevMessage && 
+                  prevMessage.sender === message.sender && 
+                  !prevMessage.isNote && !message.isNote &&
+                  (() => {
+                    const prevTime = parseTimestamp(prevMessage.timestamp);
+                    const currTime = parseTimestamp(message.timestamp);
+                    // Group if within 60 seconds and both timestamps are parseable
+                    return prevTime !== null && currTime !== null && Math.abs(prevTime - currTime) <= 60;
+                  })();
+                
+                const shouldGroupWithNext = nextMessage && 
+                  nextMessage.sender === message.sender && 
+                  !nextMessage.isNote && !message.isNote &&
+                  (() => {
+                    const nextTime = parseTimestamp(nextMessage.timestamp);
+                    const currTime = parseTimestamp(message.timestamp);
+                    return nextTime !== null && currTime !== null && Math.abs(nextTime - currTime) <= 60;
+                  })();
 
                 // Determine bubble background color
                 const getBubbleBackground = () => {
@@ -1809,31 +1848,33 @@ export default function ChatInterface({
                     key={message.id} 
                     className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'} w-full ${
                       isNewMessage ? 'animate-message-in' : ''
-                    }`}
+                    } ${shouldGroupWithPrev ? '-mt-[8px]' : ''}`}
                     style={{
                       transformOrigin: isAgent ? 'right bottom' : 'left bottom'
                     }}
                   >
-                    {/* Chat Header with Avatar and Name */}
-                    <div className={`flex gap-[8px] items-center ${isAgent ? 'flex-row-reverse' : 'flex-row'} w-[360px]`}>
-                      {/* Avatar */}
-                      <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border border-[#e4e4e4] shrink-0 overflow-hidden ${
-                        isAgent ? 'bg-[#ecfcfc]' : 'bg-gradient-to-b from-[#d4ffcd] to-[#4adc34]'
-                      } ${isNewMessage ? 'animate-avatar-pop' : ''}`}>
-                        {message.avatarUrl ? (
-                          <img 
-                            src={message.avatarUrl} 
-                            alt={message.senderName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : null}
-                      </div>
+                    {/* Chat Header with Avatar and Name - Only show if not grouped with previous */}
+                    {!shouldGroupWithPrev && (
+                      <div className={`flex gap-[8px] items-center ${isAgent ? 'flex-row-reverse' : 'flex-row'} w-[360px]`}>
+                        {/* Avatar */}
+                        <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border border-[#e4e4e4] shrink-0 overflow-hidden ${
+                          isAgent ? 'bg-[#ecfcfc]' : 'bg-gradient-to-b from-[#d4ffcd] to-[#4adc34]'
+                        } ${isNewMessage ? 'animate-avatar-pop' : ''}`}>
+                          {message.avatarUrl ? (
+                            <img 
+                              src={message.avatarUrl} 
+                              alt={message.senderName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : null}
+                        </div>
 
-                      {/* Name */}
-                      <span className="text-[14px] leading-[20px] font-semibold text-[#191919] tracking-[-0.01px]">
-                        {message.senderName}
-                      </span>
-                    </div>
+                        {/* Name */}
+                        <span className="text-[14px] leading-[20px] font-semibold text-[#191919] tracking-[-0.01px]">
+                          {message.senderName}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Message Bubble */}
                     <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-[368px]'}`}>
@@ -1893,19 +1934,21 @@ export default function ChatInterface({
                         </div>
                       )}
 
-                      {/* Timestamp */}
-                      <div className={`flex items-center ${isAgent ? 'justify-end' : 'justify-start'} gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-full'} ${
-                        isNewMessage ? 'animate-timestamp-fade' : ''
-                      }`}>
-                        <span className={`text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] ${isAgent ? 'text-right' : 'text-left'}`}>
-                          <TimestampTooltip 
-                            relativeTime={message.timestamp}
-                            is12Hour={conversationData.contactInfo.name.includes('Edeka')}
-                          >
-                            {message.timestamp}
-                          </TimestampTooltip>
-                        </span>
-                      </div>
+                      {/* Timestamp - Only show if not grouped with next message */}
+                      {!shouldGroupWithNext && (
+                        <div className={`flex items-center ${isAgent ? 'justify-end' : 'justify-start'} gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-full'} ${
+                          isNewMessage ? 'animate-timestamp-fade' : ''
+                        }`}>
+                          <span className={`text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] ${isAgent ? 'text-right' : 'text-left'}`}>
+                            <TimestampTooltip 
+                              relativeTime={message.timestamp}
+                              is12Hour={conversationData.contactInfo.name.includes('Edeka')}
+                            >
+                              {message.timestamp}
+                            </TimestampTooltip>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
