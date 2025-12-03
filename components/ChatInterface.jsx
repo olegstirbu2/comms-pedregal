@@ -1867,7 +1867,7 @@ export default function ChatInterface({
                               <img 
                                 src={url} 
                                 alt={`Sent image ${index + 1}`}
-                                className="w-[120px] h-[120px] object-cover rounded-[12px]"
+                                className="w-[120px] h-[120px] object-cover rounded-[16px]"
                               />
                             </button>
                           ))}
