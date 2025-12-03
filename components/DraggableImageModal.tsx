@@ -194,7 +194,7 @@ export default function DraggableImageModal({
     >
       {/* Image Container with rounded corners */}
       <div 
-        className="absolute inset-0 rounded-[24px] overflow-hidden"
+        className="absolute inset-0 rounded-[24px] overflow-hidden bg-white"
         style={{ 
           boxShadow: '0px 8px 32px rgba(17, 19, 24, 0.25)'
         }}
@@ -203,7 +203,7 @@ export default function DraggableImageModal({
           key={currentIndex}
           src={images[currentIndex]}
           alt={`Image ${currentIndex + 1} of ${images.length}`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           draggable={false}
         />
       </div>
