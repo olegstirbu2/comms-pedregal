@@ -1898,7 +1898,7 @@ export default function ChatInterface({
                     <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-[368px]'}`}>
                       {/* GIF (if present) */}
                       {message.gifUrl && (
-                        <div className="mb-[8px]">
+                        <div>
                           <button
                             onClick={() => handleImageClick([message.gifUrl], 0)}
                             className="cursor-pointer hover:opacity-90 transition-opacity"
@@ -1915,7 +1915,7 @@ export default function ChatInterface({
                       
                       {/* Images (if present) - 2-column grid for multiple */}
                       {message.imageUrls && message.imageUrls.length > 0 && (
-                        <div className={`mb-[8px] ${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
+                        <div className={`${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
                           {message.imageUrls.map((url, index) => (
                             <button
                               key={index}
@@ -1936,7 +1936,7 @@ export default function ChatInterface({
                       {/* Text Bubble (only if there's text) */}
                       {message.text && (
                         <div
-                          className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${getBubbleRadius()}`}
+                          className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${getBubbleRadius()} ${message.imageUrls?.length || message.gifUrl ? 'mt-[8px]' : ''}`}
                         >
                           <p className={`${
                             isEmojiOnly 
