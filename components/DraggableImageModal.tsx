@@ -194,7 +194,7 @@ export default function DraggableImageModal({
     >
       {/* Image Container with rounded corners */}
       <div 
-        className="absolute inset-0 rounded-[24px] overflow-hidden bg-white"
+        className="absolute inset-0 rounded-[24px] overflow-hidden bg-[#111318]"
         style={{ 
           boxShadow: '0px 8px 32px rgba(17, 19, 24, 0.25)'
         }}
