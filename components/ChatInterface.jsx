@@ -1842,6 +1842,20 @@ export default function ChatInterface({
                   if (isAgent) return 'bg-[#ecfcfc]'; // Light blue for agent (#ecfcfc matches Figma)
                   return 'bg-[#f6f7f8]'; // Gray for consumer
                 };
+                
+                // Determine bubble border radius based on grouping
+                const getBubbleRadius = () => {
+                  // If grouped with previous message, use all 16px corners
+                  if (shouldGroupWithPrev) {
+                    return 'rounded-[16px]';
+                  }
+                  // First message in group: use special corner radius (one corner is 0)
+                  if (isAgent) {
+                    return 'rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'; // top-right is 0
+                  } else {
+                    return 'rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'; // top-left is 0
+                  }
+                };
 
                 return (
                   <div 
@@ -1918,11 +1932,7 @@ export default function ChatInterface({
                       {/* Text Bubble (only if there's text) */}
                       {message.text && (
                         <div
-                          className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${
-                            isAgent
-                              ? 'rounded-tl-[16px] rounded-bl-[16px] rounded-br-[16px]'
-                              : 'rounded-tr-[16px] rounded-bl-[16px] rounded-br-[16px]'
-                          }`}
+                          className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${getBubbleRadius()}`}
                         >
                           <p className={`${
                             isEmojiOnly 
