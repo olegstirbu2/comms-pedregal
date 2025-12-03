@@ -272,10 +272,10 @@ export function CloseIcon({ size = 24, className = "" }) {
 }
 
 // Arrow Right icon for image viewer navigation - arrow-right.svg
-export function ArrowRightIcon({ size = 24, className = "" }) {
+export function ArrowRightIcon({ size = 16, className = "" }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M12.793 3.79289C13.1835 3.40237 13.8165 3.40237 14.207 3.79289L21 10.5859C21.781 11.3669 21.7809 12.633 21 13.414L14.207 20.207C13.8165 20.5975 13.1835 20.5975 12.793 20.207C12.4024 19.8164 12.4024 19.1834 12.793 18.7929L18.5859 12.9999H3C2.44772 12.9999 2 12.5522 2 11.9999C2 11.4476 2.44772 10.9999 3 10.9999H18.5859L12.793 5.20696C12.4024 4.81643 12.4024 4.18342 12.793 3.79289Z" fill="currentColor"/>
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path d="M8.29297 2.29289C8.68349 1.90237 9.31651 1.90237 9.70703 2.29289L14.2334 6.81926C14.8854 7.4714 14.8854 8.52845 14.2334 9.18059L9.70703 13.707C9.31651 14.0975 8.68349 14.0975 8.29297 13.707C7.90245 13.3164 7.90245 12.6834 8.29297 12.2929L11.5859 8.99992H2C1.44772 8.99992 1 8.55221 1 7.99992C1 7.44764 1.44772 6.99992 2 6.99992H11.5859L8.29297 3.70696C7.90244 3.31643 7.90244 2.68342 8.29297 2.29289Z" fill="currentColor"/>
     </svg>
   );
 }
