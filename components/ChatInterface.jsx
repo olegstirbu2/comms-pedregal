@@ -1376,8 +1376,8 @@ export default function ChatInterface({
       {/* Drag and Drop Overlay */}
       {isDragging && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none">
-          {/* Semi-transparent background */}
-          <div className="absolute inset-0 bg-white z-0" />
+          {/* Semi-transparent background (80% opacity) */}
+          <div className="absolute inset-0 bg-white/80 z-0" />
           {/* Drop zone */}
           <div className="relative z-10 flex flex-col items-center gap-[8px] p-[56px] border border-dashed border-[rgba(17,19,24,0.5)] rounded-[24px]">
             <UploadLineIcon size={64} className="text-[#111318]" />
@@ -1944,9 +1944,18 @@ export default function ChatInterface({
                           src={image.preview} 
                           alt="Upload preview"
                           className={`w-full h-full object-cover rounded-[12px] ${
-                            image.isUploading ? 'opacity-60' : 'opacity-100'
+                            image.isUploading ? 'opacity-50' : 'opacity-100'
                           }`}
                         />
+                        {/* Progress bar while uploading - centered on image */}
+                        {image.isUploading && (
+                          <div className="absolute left-[4px] top-[30px] w-[56px] h-[4px] bg-white rounded-[2px] overflow-hidden">
+                            <div 
+                              className="h-full bg-[#111318] rounded-r-full transition-all duration-200"
+                              style={{ width: `${image.progress}%` }}
+                            />
+                          </div>
+                        )}
                         {/* Delete button on hover (only show when not uploading) - centered */}
                         {hoveredImageId === image.id && !image.isUploading && (
                           <button
@@ -1958,15 +1967,6 @@ export default function ChatInterface({
                           </button>
                         )}
                       </div>
-                      {/* Progress bar while uploading */}
-                      {image.isUploading && (
-                        <div className="w-[64px] h-[4px] bg-[#e9eaec] rounded-[2px] overflow-hidden">
-                          <div 
-                            className="h-full bg-[#111318] rounded-r-full transition-all duration-200"
-                            style={{ width: `${image.progress}%` }}
-                          />
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
