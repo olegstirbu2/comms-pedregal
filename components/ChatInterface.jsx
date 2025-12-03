@@ -1929,6 +1929,49 @@ export default function ChatInterface({
             <div className={`p-[16px] flex flex-col gap-[16px] rounded-[15px] ${
               composerMode === 'note' ? 'bg-[#fff6d4]' : 'bg-white'
             }`}>
+              {/* Image Preview in Composer (horizontal row for multiple images) */}
+              {pendingImages.length > 0 && (
+                <div className="flex gap-[8px] items-start flex-wrap">
+                  {pendingImages.map((image) => (
+                    <div key={image.id} className="flex flex-col gap-[8px] items-start">
+                      <div 
+                        className="relative w-[64px] h-[64px] rounded-[12px]"
+                        onMouseEnter={() => setHoveredImageId(image.id)}
+                        onMouseLeave={() => setHoveredImageId(null)}
+                      >
+                        {/* Image thumbnail */}
+                        <img 
+                          src={image.preview} 
+                          alt="Upload preview"
+                          className={`w-full h-full object-cover rounded-[12px] ${
+                            image.isUploading ? 'opacity-60' : 'opacity-100'
+                          }`}
+                        />
+                        {/* Delete button on hover (only show when not uploading) - centered */}
+                        {hoveredImageId === image.id && !image.isUploading && (
+                          <button
+                            onClick={() => handleRemoveImage(image.id)}
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32px] h-[32px] bg-white rounded-[8px] flex items-center justify-center shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] hover:bg-[#f6f7f8] transition-colors"
+                            aria-label="Remove image"
+                          >
+                            <TrashLineIcon size={16} className="text-black" />
+                          </button>
+                        )}
+                      </div>
+                      {/* Progress bar while uploading */}
+                      {image.isUploading && (
+                        <div className="w-[64px] h-[4px] bg-[#e9eaec] rounded-[2px] overflow-hidden">
+                          <div 
+                            className="h-full bg-[#111318] rounded-r-full transition-all duration-200"
+                            style={{ width: `${image.progress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
                   {/* Primary Actions Row */}
                   <div className="flex items-center justify-between relative" ref={composerSwitchRef}>
                     {/* Composer Switch Popover - Positioned above toggle button */}
@@ -1998,49 +2041,6 @@ export default function ChatInterface({
                       )}
                     </button>
                   </div>
-
-              {/* Image Preview in Composer (horizontal row for multiple images) */}
-              {pendingImages.length > 0 && (
-                <div className="flex gap-[8px] items-start flex-wrap">
-                  {pendingImages.map((image) => (
-                    <div key={image.id} className="flex flex-col gap-[8px] items-start">
-                      <div 
-                        className="relative w-[64px] h-[64px] rounded-[12px]"
-                        onMouseEnter={() => setHoveredImageId(image.id)}
-                        onMouseLeave={() => setHoveredImageId(null)}
-                      >
-                        {/* Image thumbnail */}
-                        <img 
-                          src={image.preview} 
-                          alt="Upload preview"
-                          className={`w-full h-full object-cover rounded-[12px] ${
-                            image.isUploading ? 'opacity-60' : 'opacity-100'
-                          }`}
-                        />
-                        {/* Delete button on hover (only show when not uploading) - centered */}
-                        {hoveredImageId === image.id && !image.isUploading && (
-                          <button
-                            onClick={() => handleRemoveImage(image.id)}
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32px] h-[32px] bg-white rounded-[8px] flex items-center justify-center shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] hover:bg-[#f6f7f8] transition-colors"
-                            aria-label="Remove image"
-                          >
-                            <TrashLineIcon size={16} className="text-black" />
-                          </button>
-                        )}
-                      </div>
-                      {/* Progress bar while uploading */}
-                      {image.isUploading && (
-                        <div className="w-[64px] h-[4px] bg-[#e9eaec] rounded-[2px] overflow-hidden">
-                          <div 
-                            className="h-full bg-[#111318] rounded-r-full transition-all duration-200"
-                            style={{ width: `${image.progress}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
 
               {/* Text Input with Emoji Popover */}
               <div className="flex flex-col gap-[8px] relative">
