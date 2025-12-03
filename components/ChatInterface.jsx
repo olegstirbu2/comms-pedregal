@@ -1817,24 +1817,28 @@ export default function ChatInterface({
                   return null;
                 };
                 
-                const shouldGroupWithPrev = prevMessage && 
-                  prevMessage.sender === message.sender && 
-                  !prevMessage.isNote && !message.isNote &&
-                  (() => {
-                    const prevTime = parseTimestamp(prevMessage.timestamp);
-                    const currTime = parseTimestamp(message.timestamp);
-                    // Group if within 60 seconds and both timestamps are parseable
-                    return prevTime !== null && currTime !== null && Math.abs(prevTime - currTime) <= 60;
-                  })();
+                 const shouldGroupWithPrev = prevMessage && 
+                   prevMessage.sender === message.sender && 
+                   !prevMessage.isNote && !message.isNote &&
+                   !message.imageUrls?.length && // Don't group messages with images
+                   !prevMessage.imageUrls?.length && // Don't group after messages with images
+                   (() => {
+                     const prevTime = parseTimestamp(prevMessage.timestamp);
+                     const currTime = parseTimestamp(message.timestamp);
+                     // Group if within 60 seconds and both timestamps are parseable
+                     return prevTime !== null && currTime !== null && Math.abs(prevTime - currTime) <= 60;
+                   })();
                 
-                const shouldGroupWithNext = nextMessage && 
-                  nextMessage.sender === message.sender && 
-                  !nextMessage.isNote && !message.isNote &&
-                  (() => {
-                    const nextTime = parseTimestamp(nextMessage.timestamp);
-                    const currTime = parseTimestamp(message.timestamp);
-                    return nextTime !== null && currTime !== null && Math.abs(nextTime - currTime) <= 60;
-                  })();
+                 const shouldGroupWithNext = nextMessage && 
+                   nextMessage.sender === message.sender && 
+                   !nextMessage.isNote && !message.isNote &&
+                   !message.imageUrls?.length && // Don't group messages with images
+                   !nextMessage.imageUrls?.length && // Don't group before messages with images
+                   (() => {
+                     const nextTime = parseTimestamp(nextMessage.timestamp);
+                     const currTime = parseTimestamp(message.timestamp);
+                     return nextTime !== null && currTime !== null && Math.abs(nextTime - currTime) <= 60;
+                   })();
 
                 // Determine bubble background color
                 const getBubbleBackground = () => {
