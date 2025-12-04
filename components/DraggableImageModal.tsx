@@ -12,6 +12,8 @@ interface DraggableImageModalProps {
 
 type ResizeCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null;
 
+const VIEWPORT_MARGIN = 48; // margin to keep modal visibly inset on small screens
+
 export default function DraggableImageModal({ 
   isOpen, 
   images, 
@@ -30,17 +32,27 @@ export default function DraggableImageModal({
   
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Helper to compute a square that fits viewport with margin
+  const getFittedSquare = useCallback((base = 800) => {
+    const vw = window.innerWidth - VIEWPORT_MARGIN * 2;
+    const vh = window.innerHeight - VIEWPORT_MARGIN * 2;
+    const maxAllowed = Math.max(320, Math.min(1200, vw, vh));
+    const side = Math.min(base, maxAllowed);
+    return { width: side, height: side };
+  }, []);
+
   // Center modal on open
   useEffect(() => {
     if (isOpen) {
       setCurrentIndex(initialIndex);
-      setSize({ width: 800, height: 800 });
-      // Center in viewport
-      const x = (window.innerWidth - 800) / 2;
-      const y = (window.innerHeight - 800) / 2;
+      const fitted = getFittedSquare(800);
+      setSize(fitted);
+      // Center in viewport with fitted size
+      const x = (window.innerWidth - fitted.width) / 2;
+      const y = (window.innerHeight - fitted.height) / 2;
       setPosition({ x, y });
     }
-  }, [isOpen, initialIndex]);
+  }, [isOpen, initialIndex, getFittedSquare]);
 
   // Navigation handlers
   const goToPrevious = useCallback(() => {
@@ -121,24 +133,28 @@ export default function DraggableImageModal({
         // Use the larger delta to maintain square aspect ratio
         const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
         
+        const vw = window.innerWidth - VIEWPORT_MARGIN * 2;
+        const vh = window.innerHeight - VIEWPORT_MARGIN * 2;
+        const maxAllowed = Math.max(320, Math.min(1200, vw, vh));
+
         let newSize: number;
         let newX = resizeStart.x;
         let newY = resizeStart.y;
         
         switch (resizeCorner) {
           case 'bottom-right':
-            newSize = Math.max(400, Math.min(1200, resizeStart.width + delta));
+            newSize = Math.max(320, Math.min(maxAllowed, resizeStart.width + delta));
             break;
           case 'bottom-left':
-            newSize = Math.max(400, Math.min(1200, resizeStart.width - delta));
+            newSize = Math.max(320, Math.min(maxAllowed, resizeStart.width - delta));
             newX = resizeStart.x + (resizeStart.width - newSize);
             break;
           case 'top-right':
-            newSize = Math.max(400, Math.min(1200, resizeStart.width + delta));
+            newSize = Math.max(320, Math.min(maxAllowed, resizeStart.width + delta));
             newY = resizeStart.y + (resizeStart.height - newSize);
             break;
           case 'top-left':
-            newSize = Math.max(400, Math.min(1200, resizeStart.width - delta));
+            newSize = Math.max(320, Math.min(maxAllowed, resizeStart.width - delta));
             newX = resizeStart.x + (resizeStart.width - newSize);
             newY = resizeStart.y + (resizeStart.height - newSize);
             break;
@@ -174,6 +190,32 @@ export default function DraggableImageModal({
       document.body.style.cursor = '';
     };
   }, [isDragging, resizeCorner, dragOffset, resizeStart]);
+
+  // Re-clamp size/position on window resize
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleResize = () => {
+      const vw = window.innerWidth - VIEWPORT_MARGIN * 2;
+      const vh = window.innerHeight - VIEWPORT_MARGIN * 2;
+      const maxAllowed = Math.max(320, Math.min(1200, vw, vh));
+
+      const nextSize = Math.min(size.width, maxAllowed);
+      const nextX = Math.min(
+        Math.max(VIEWPORT_MARGIN, position.x),
+        window.innerWidth - nextSize - VIEWPORT_MARGIN
+      );
+      const nextY = Math.min(
+        Math.max(VIEWPORT_MARGIN, position.y),
+        window.innerHeight - nextSize - VIEWPORT_MARGIN
+      );
+
+      setSize({ width: nextSize, height: nextSize });
+      setPosition({ x: nextX, y: nextY });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen, size.width, position.x, position.y]);
 
   if (!isOpen) return null;
 
