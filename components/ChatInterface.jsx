@@ -1948,7 +1948,7 @@ export default function ChatInterface({
                               }`}
                               aria-label="Delete message"
                             >
-                              <TrashLineIcon size={16} className="text-[#111318]" />
+                          <TrashLineIcon size={16} className="text-[#51545D]" />
                             </button>
                           )}
                           
@@ -1982,7 +1982,7 @@ export default function ChatInterface({
                               }`}
                               aria-label="Delete message"
                             >
-                              <TrashLineIcon size={16} className="text-[#111318]" />
+                              <TrashLineIcon size={16} className="text-[#51545D]" />
                             </button>
                           )}
                           
@@ -2021,7 +2021,7 @@ export default function ChatInterface({
                               }`}
                               aria-label="Delete message"
                             >
-                              <TrashLineIcon size={16} className="text-[#111318]" />
+                              <TrashLineIcon size={16} className="text-[#51545D]" />
                             </button>
                           )}
                           
