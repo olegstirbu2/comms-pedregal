@@ -37,6 +37,7 @@ import EmojiModal from './EmojiModal';
 import ImageViewerModal from './ImageViewerModal';
 import DraggableImageModal from './DraggableImageModal';
 import GifModal from './GifModal';
+import DeleteMessageModal from './DeleteMessageModal';
 import { searchEmojis } from '@/lib/emoji-data';
 
 // Mock conversations by case ID
@@ -828,6 +829,17 @@ export default function ChatInterface({
     initialIndex: 0
   });
   
+  // Message deletion state
+  const [deletedMessages, setDeletedMessages] = useState(new Set());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState(null);
+  
+  // Reset deleted messages when switching cases
+  useEffect(() => {
+    setDeletedMessages(new Set());
+  }, [selectedCase?.id, activeTab]);
+  
   // Get conversation data based on active tab and selected case
   const getConversationData = () => {
     if (activeTab === 'Courier') {
@@ -1324,6 +1336,25 @@ export default function ChatInterface({
     });
   }, []);
 
+  // Message deletion handlers
+  const handleDeleteClick = useCallback((messageId) => {
+    setMessageToDelete(messageId);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (messageToDelete) {
+      setDeletedMessages(prev => new Set([...prev, messageToDelete]));
+      setDeleteModalOpen(false);
+      setMessageToDelete(null);
+    }
+  }, [messageToDelete]);
+
+  const cancelDelete = useCallback(() => {
+    setDeleteModalOpen(false);
+    setMessageToDelete(null);
+  }, []);
+
   // Resize handlers
   const handleResizeStart = (e) => {
     setIsResizing(true);
@@ -1793,6 +1824,8 @@ export default function ChatInterface({
                 const isAgent = message.sender === 'agent';
                 const isNote = message.isNote;
                 const isNewMessage = message.id === newMessageId;
+                const isDeleted = deletedMessages.has(message.id);
+                const isDeletable = isAgent || isNote; // Only agent messages and notes can be deleted
                 
                 // Check if message contains only emojis (no other text)
                 const emojiRegex = /^[\p{Emoji}\s]+$/u;
@@ -1843,6 +1876,7 @@ export default function ChatInterface({
 
                 // Determine bubble background color
                 const getBubbleBackground = () => {
+                  if (isDeleted) return 'bg-[#fff0ed]'; // Light red for deleted messages (#fff0ed from Figma)
                   if (isNote) return 'bg-[#fff6d4]'; // Yellow for notes
                   if (isAgent) return 'bg-[#ecfcfc]'; // Light blue for agent (#ecfcfc matches Figma)
                   return 'bg-[#f6f7f8]'; // Gray for consumer
@@ -1865,12 +1899,14 @@ export default function ChatInterface({
                 return (
                   <div 
                     key={message.id} 
-                    className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'} w-full ${
+                    className={`relative flex flex-col ${isAgent ? 'items-end' : 'items-start'} w-full ${
                       isNewMessage ? 'animate-message-in' : ''
                     } ${shouldGroupWithPrev ? '-mt-[8px]' : ''}`}
                     style={{
                       transformOrigin: isAgent ? 'right bottom' : 'left bottom'
                     }}
+                    onMouseEnter={() => isDeletable && !isDeleted && setHoveredMessageId(message.id)}
+                    onMouseLeave={() => setHoveredMessageId(null)}
                   >
                     {/* Chat Header with Avatar and Name - Only show if not grouped with previous */}
                     {!shouldGroupWithPrev && (
@@ -1895,20 +1931,37 @@ export default function ChatInterface({
                       </div>
                     )}
 
-                    {/* Message Bubble */}
+                    {/* Message Content Wrapper */}
                     <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-[368px]'}`}>
                       {/* GIF (if present) */}
                       {message.gifUrl && (
-                        <div>
+                        <div className="flex gap-[4px] items-center">
+                          {/* Delete Button for GIF-only messages (no text) */}
+                          {!message.text && isDeletable && !isDeleted && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(message.id);
+                              }}
+                              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[8px] bg-transparent hover:bg-[rgba(17,19,24,0.05)] transition-opacity duration-75 shrink-0 ${
+                                hoveredMessageId === message.id ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                              }`}
+                              aria-label="Delete message"
+                            >
+                              <TrashLineIcon size={16} className="text-[#111318]" />
+                            </button>
+                          )}
+                          
                           <button
-                            onClick={() => handleImageClick([message.gifUrl], 0)}
-                            className="cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => !isDeleted && handleImageClick([message.gifUrl], 0)}
+                            className={`cursor-pointer hover:opacity-90 transition-opacity ${isDeleted ? 'pointer-events-none' : ''}`}
                             aria-label="View GIF"
+                            disabled={isDeleted}
                           >
                             <img 
                               src={message.gifUrl} 
                               alt="Sent GIF"
-                              className="w-[120px] h-[120px] object-cover rounded-[12px]"
+                              className={`w-[120px] h-[120px] object-cover rounded-[12px] ${isDeleted ? 'opacity-50' : ''}`}
                             />
                           </button>
                         </div>
@@ -1916,51 +1969,102 @@ export default function ChatInterface({
                       
                       {/* Images (if present) - 2-column grid for multiple */}
                       {message.imageUrls && message.imageUrls.length > 0 && (
-                        <div className={`${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
-                          {message.imageUrls.map((url, index) => (
+                        <div className="flex gap-[4px] items-center">
+                          {/* Delete Button for image-only messages (no text) */}
+                          {!message.text && isDeletable && !isDeleted && (
                             <button
-                              key={index}
-                              onClick={() => handleImageClick(message.imageUrls, index)}
-                              className="cursor-pointer hover:opacity-90 transition-opacity"
-                              aria-label={`View image ${index + 1} of ${message.imageUrls.length}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(message.id);
+                              }}
+                              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[8px] bg-transparent hover:bg-[rgba(17,19,24,0.05)] transition-opacity duration-75 shrink-0 ${
+                                hoveredMessageId === message.id ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                              }`}
+                              aria-label="Delete message"
                             >
-                              <img 
-                                src={url} 
-                                alt={`Sent image ${index + 1}`}
-                                className="w-[120px] h-[120px] object-cover rounded-[16px]"
-                              />
+                              <TrashLineIcon size={16} className="text-[#111318]" />
                             </button>
-                          ))}
+                          )}
+                          
+                          <div className={`${message.imageUrls.length > 1 ? 'grid grid-cols-2 gap-[8px]' : ''}`}>
+                            {message.imageUrls.map((url, index) => (
+                              <button
+                                key={index}
+                                onClick={() => !isDeleted && handleImageClick(message.imageUrls, index)}
+                                className={`cursor-pointer hover:opacity-90 transition-opacity ${isDeleted ? 'pointer-events-none' : ''}`}
+                                aria-label={`View image ${index + 1} of ${message.imageUrls.length}`}
+                                disabled={isDeleted}
+                              >
+                                <img 
+                                  src={url} 
+                                  alt={`Sent image ${index + 1}`}
+                                  className={`w-[120px] h-[120px] object-cover rounded-[16px] ${isDeleted ? 'opacity-50' : ''}`}
+                                />
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                       
-                      {/* Text Bubble (only if there's text) */}
+                      {/* Text Bubble with Delete Button (only if there's text) */}
                       {message.text && (
-                        <div
-                          className={`${isEmojiOnly ? 'px-[20px]' : 'px-[24px] w-full'} py-[16px] ${getBubbleBackground()} ${getBubbleRadius()} ${message.imageUrls?.length || message.gifUrl ? 'mt-[8px]' : ''}`}
-                        >
-                          <p className={`${
-                            isEmojiOnly 
-                              ? 'text-[32px] leading-[40px] font-bold' 
-                              : 'text-[14px] leading-[20px] font-normal'
-                          } text-[#191919] tracking-[-0.01px]`}>
-                            {message.text}
-                          </p>
+                        <div className={`flex gap-[4px] items-center ${message.imageUrls?.length || message.gifUrl ? 'mt-[8px]' : ''}`}>
+                          {/* Delete Button - always show next to bubble */}
+                          {isDeletable && !isDeleted && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(message.id);
+                              }}
+                              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[8px] bg-transparent hover:bg-[rgba(17,19,24,0.05)] transition-opacity duration-75 shrink-0 ${
+                                hoveredMessageId === message.id ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                              }`}
+                              aria-label="Delete message"
+                            >
+                              <TrashLineIcon size={16} className="text-[#111318]" />
+                            </button>
+                          )}
+                          
+                          <div
+                            className={`${isEmojiOnly ? 'px-[20px]' : 'px-[20px]'} py-[16px] ${getBubbleBackground()} ${getBubbleRadius()}`}
+                            style={{ width: isEmojiOnly ? 'auto' : '328px' }}
+                          >
+                            <p className={`${
+                              isEmojiOnly 
+                                ? 'text-[32px] leading-[40px] font-bold' 
+                                : 'text-[14px] leading-[20px] font-normal'
+                            } text-[#191919] tracking-[-0.01px]`}>
+                              {message.text}
+                            </p>
+                          </div>
                         </div>
                       )}
-
+                      
                       {/* Timestamp - Only show if not grouped with next message */}
                       {!shouldGroupWithNext && (
                         <div className={`flex items-center ${isAgent ? 'justify-end' : 'justify-start'} gap-[8px] mt-[4px] ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-full'} ${
                           isNewMessage ? 'animate-timestamp-fade' : ''
                         }`}>
-                          <span className={`text-[12px] leading-[18px] font-normal text-[#606060] tracking-[-0.01px] ${isAgent ? 'text-right' : 'text-left'}`}>
-                            <TimestampTooltip 
-                              relativeTime={message.timestamp}
-                              is12Hour={conversationData.contactInfo.name.includes('Edeka')}
-                            >
-                              {message.timestamp}
-                            </TimestampTooltip>
+                          <span className={`text-[12px] leading-[18px] font-normal ${isDeleted ? 'text-[#d91400]' : 'text-[#606060]'} tracking-[-0.01px] ${isAgent ? 'text-right' : 'text-left'}`}>
+                            {isDeleted ? (
+                              <span>
+                                <TimestampTooltip 
+                                  relativeTime={message.timestamp}
+                                  is12Hour={conversationData.contactInfo.name.includes('Edeka')}
+                                >
+                                  {message.timestamp}
+                                </TimestampTooltip>
+                                {' ∙ '}
+                                <span className="text-[#d91400]">{isNote ? 'Note deleted' : 'Message deleted'}</span>
+                              </span>
+                            ) : (
+                              <TimestampTooltip 
+                                relativeTime={message.timestamp}
+                                is12Hour={conversationData.contactInfo.name.includes('Edeka')}
+                              >
+                                {message.timestamp}
+                              </TimestampTooltip>
+                            )}
                           </span>
                         </div>
                       )}
@@ -2256,6 +2360,13 @@ export default function ChatInterface({
           onClose={handleCloseImageViewer}
         />
       )}
+      
+      {/* Delete Message Confirmation Modal */}
+      <DeleteMessageModal
+        isOpen={deleteModalOpen}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }

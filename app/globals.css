@@ -150,15 +150,11 @@
   background: transparent;
 }
 
-/* Apple Messages-style animation for new messages */
+/* Snappy animation for new messages */
 @keyframes message-in {
   0% {
     opacity: 0;
-    transform: scale(0.92) translateY(8px);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.01) translateY(0);
+    transform: scale(0.96) translateY(4px);
   }
   100% {
     opacity: 1;
@@ -169,10 +165,7 @@
 @keyframes avatar-pop {
   0% {
     opacity: 0;
-    transform: scale(0.8);
-  }
-  60% {
-    transform: scale(1.05);
+    transform: scale(0.92);
   }
   100% {
     opacity: 1;
@@ -190,17 +183,15 @@
 }
 
 .animate-message-in {
-  animation: message-in 0.35s cubic-bezier(0.34, 1.25, 0.64, 1) forwards;
+  animation: message-in 0.15s ease-out forwards;
 }
 
 .animate-avatar-pop {
-  animation: avatar-pop 0.3s cubic-bezier(0.34, 1.35, 0.64, 1) forwards;
-  animation-delay: 0.05s;
+  animation: avatar-pop 0.15s ease-out forwards;
 }
 
 .animate-timestamp-fade {
-  animation: timestamp-fade 0.2s ease-out forwards;
-  animation-delay: 0.15s;
+  animation: timestamp-fade 0.15s ease-out forwards;
   opacity: 0;
 }
 
