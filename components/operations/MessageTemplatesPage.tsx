@@ -420,7 +420,7 @@ export default function MessageTemplatesPage() {
   const gridTemplate = '1fr 140px 140px 100px 140px 130px 130px';
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col min-h-full pb-6">
       {/* Page Header */}
       <div className="flex flex-col gap-2 py-6 bg-white">
         {/* Tabs */}
@@ -649,7 +649,7 @@ export default function MessageTemplatesPage() {
           </div>
 
           {/* Pagination */}
-          <div className="pt-4">
+          <div className="pt-4 pb-6">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
