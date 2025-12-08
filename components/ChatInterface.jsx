@@ -37,6 +37,7 @@ import EmojiModal from './EmojiModal';
 import ImageViewerModal from './ImageViewerModal';
 import DraggableImageModal from './DraggableImageModal';
 import GifModal from './GifModal';
+import TemplateModal from './TemplateModal';
 import DeleteMessageModal from './DeleteMessageModal';
 import { searchEmojis } from '@/lib/emoji-data';
 
@@ -808,6 +809,9 @@ export default function ChatInterface({
   // GIF picker state
   const [gifModalOpen, setGifModalOpen] = useState(false);
   
+  // Template picker state
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  
   // Track previous case ID for deep linking logic
   const previousCaseIdRef = useRef(null);
   
@@ -1124,12 +1128,24 @@ export default function ChatInterface({
   };
 
   const handleKeyPress = (e) => {
-    // Don't send message if emoji popover is open
+    // Don't send message if emoji popover is open or if Shift is held (for new line)
     if (e.key === 'Enter' && !e.shiftKey && !emojiPopoverOpen) {
       e.preventDefault();
       handleSendMessage();
     }
+    // Allow Shift+Enter for new line (default textarea behavior)
   };
+
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (inputRef.current) {
+      // Reset height to recalculate
+      inputRef.current.style.height = 'auto';
+      // Set height based on scrollHeight, capped at max-height
+      const newHeight = Math.min(inputRef.current.scrollHeight, 140);
+      inputRef.current.style.height = `${newHeight}px`;
+    }
+  }, [inputValue]);
 
   // Handle input changes to detect emoji trigger (:)
   const handleInputChange = useCallback((e) => {
@@ -1213,6 +1229,13 @@ export default function ChatInterface({
       setNewMessageId(null);
     }, 500);
   }, [composerMode]);
+
+  // Handle template selection from modal
+  const handleTemplateSelect = useCallback((template) => {
+    setInputValue(template.content);
+    setTemplateModalOpen(false);
+    inputRef.current?.focus();
+  }, []);
 
   // Handle emoji popover navigation
   const handleEmojiPopoverNavigate = useCallback((direction) => {
@@ -2033,7 +2056,7 @@ export default function ChatInterface({
                               isEmojiOnly 
                                 ? 'text-[32px] leading-[40px] font-bold' 
                                 : 'text-[14px] leading-[20px] font-normal'
-                            } text-[#191919] tracking-[-0.01px]`}>
+                            } text-[#191919] tracking-[-0.01px] break-words`}>
                               {message.text}
                             </p>
                           </div>
@@ -2206,14 +2229,19 @@ export default function ChatInterface({
 
               {/* Text Input with Emoji Popover */}
               <div className="flex flex-col gap-[8px] relative">
-                <input
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={inputValue}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
                   placeholder={composerMode === 'note' ? "Write your note here..." : "Write your message here..."}
-                  className="text-[14px] leading-[20px] font-normal text-[#51545d] tracking-[-0.01px] bg-transparent border-none outline-none w-full max-h-[192px]"
+                  className="text-[14px] leading-[20px] font-normal text-[#191919] tracking-[-0.01px] bg-transparent border-none outline-none w-full resize-none overflow-y-auto placeholder:text-[#51545d]"
+                  style={{
+                    minHeight: '20px',
+                    maxHeight: '140px',
+                    height: 'auto',
+                  }}
+                  rows={1}
                   aria-label={composerMode === 'note' ? "Note input" : "Message input"}
                 />
                 
@@ -2279,7 +2307,7 @@ export default function ChatInterface({
                               {/* Template Option */}
                               <button
                                 onClick={() => {
-                                  // Handle add Template
+                                  setTemplateModalOpen(true);
                                   setIsAddPopoverOpen(false);
                                 }}
                                 className="w-full flex items-center gap-[16px] min-h-[48px] px-[16px] hover:bg-[#f6f7f8] transition-colors"
@@ -2341,6 +2369,13 @@ export default function ChatInterface({
         isOpen={gifModalOpen}
         onClose={() => setGifModalOpen(false)}
         onSelect={handleGifSelect}
+      />
+      
+      {/* Template Modal - triggered by clicking Template button */}
+      <TemplateModal
+        isOpen={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        onSelect={handleTemplateSelect}
       />
       
       {/* Image Viewer Modal - triggered by clicking message images */}
