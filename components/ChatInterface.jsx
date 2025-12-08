@@ -21,7 +21,8 @@ import {
   PhotosLineIcon,
   MenuEditLineIcon,
   TrashLineIcon,
-  UploadLineIcon
+  UploadLineIcon,
+  TranslationIcon
 } from './icons/CustomIcons';
 import {
   PersonUserLineIcon,
@@ -39,7 +40,9 @@ import DraggableImageModal from './DraggableImageModal';
 import GifModal from './GifModal';
 import TemplateModal from './TemplateModal';
 import DeleteMessageModal from './DeleteMessageModal';
+import TranslationLanguageModal from './TranslationLanguageModal';
 import { searchEmojis } from '@/lib/emoji-data';
+import { translateToItalian } from '@/lib/translation-data';
 
 // Mock conversations by case ID
 const CASE_CONVERSATIONS = {
@@ -792,6 +795,18 @@ export default function ChatInterface({
   const [isChatTranslationEnabled, setIsChatTranslationEnabled] = useState(false);
   const actionsPopoverRef = useRef(null);
   
+  // Translation state - per case/tab
+  const [translationSettings, setTranslationSettings] = useState({}); // { "caseId-tab": { language: 'Italian', messageStates: {} } }
+  const [translationLanguageModalOpen, setTranslationLanguageModalOpen] = useState(false);
+  
+  // Get current conversation key for translation settings
+  const getCurrentConversationKey = () => `${selectedCase?.id || 'default'}-${activeTab}`;
+  
+  // Get translation settings for current conversation
+  const currentTranslationSettings = translationSettings[getCurrentConversationKey()] || null;
+  const translationLanguage = currentTranslationSettings?.language || null;
+  const messageTranslationStates = currentTranslationSettings?.messageStates || {};
+  
   // Composer mode state (chat or note) - persisted per contact
   const [composerMode, setComposerMode] = useState('chat');
   const [noteModeContacts, setNoteModeContacts] = useState({}); // { "caseId-tab": true }
@@ -965,6 +980,35 @@ export default function ChatInterface({
     setMessages(newConversation.messages);
     setNewMessageId(null); // Clear animation state when switching cases/tabs
   }, [selectedCase, activeTab, selectedCourierId]);
+
+  // Initialize translation states when translation is enabled for this conversation
+  useEffect(() => {
+    const conversationKey = getCurrentConversationKey();
+    const settings = translationSettings[conversationKey];
+    
+    if (isChatTranslationEnabled && settings?.language) {
+      // Set all current messages to 'translated' state if not already set
+      const currentStates = settings.messageStates || {};
+      const needsInit = messages.some(msg => !currentStates.hasOwnProperty(msg.id));
+      
+      if (needsInit) {
+        const newStates = { ...currentStates };
+        messages.forEach(msg => {
+          if (!newStates.hasOwnProperty(msg.id)) {
+            newStates[msg.id] = 'translated';
+          }
+        });
+        
+        setTranslationSettings(prev => ({
+          ...prev,
+          [conversationKey]: {
+            ...settings,
+            messageStates: newStates
+          }
+        }));
+      }
+    }
+  }, [isChatTranslationEnabled, messages, selectedCase?.id, activeTab]);
 
   // Check scroll button visibility
   const checkScrollButtons = () => {
@@ -1378,6 +1422,58 @@ export default function ChatInterface({
     setMessageToDelete(null);
   }, []);
 
+  // Translation handlers
+  const handleApplyTranslation = useCallback((language) => {
+    const conversationKey = getCurrentConversationKey();
+    
+    // Initialize all messages as translated
+    const newStates = {};
+    messages.forEach(msg => {
+      newStates[msg.id] = 'translated';
+    });
+    
+    setTranslationSettings(prev => ({
+      ...prev,
+      [conversationKey]: {
+        language: language,
+        messageStates: newStates
+      }
+    }));
+  }, [messages, selectedCase?.id, activeTab]);
+
+  const handleToggleMessageTranslation = useCallback((messageId) => {
+    const conversationKey = getCurrentConversationKey();
+    const currentSettings = translationSettings[conversationKey];
+    
+    if (!currentSettings) return;
+    
+    const currentStates = currentSettings.messageStates || {};
+    const newState = currentStates[messageId] === 'original' ? 'translated' : 'original';
+    
+    setTranslationSettings(prev => ({
+      ...prev,
+      [conversationKey]: {
+        ...currentSettings,
+        messageStates: {
+          ...currentStates,
+          [messageId]: newState
+        }
+      }
+    }));
+  }, [translationSettings, selectedCase?.id, activeTab]);
+
+  // Get message text with translation
+  const getMessageText = useCallback((message) => {
+    if (!message.text) return '';
+    
+    // If translation is enabled and this message should be translated
+    if (isChatTranslationEnabled && translationLanguage && messageTranslationStates[message.id] !== 'original') {
+      return translateToItalian(message.text);
+    }
+    
+    return message.text;
+  }, [isChatTranslationEnabled, translationLanguage, messageTranslationStates]);
+
   // Resize handlers
   const handleResizeStart = (e) => {
     setIsResizing(true);
@@ -1572,7 +1668,40 @@ export default function ChatInterface({
                     Chat Translation
                   </span>
                   <button
-                    onClick={() => setIsChatTranslationEnabled(!isChatTranslationEnabled)}
+                    onClick={() => {
+                      const newEnabled = !isChatTranslationEnabled;
+                      setIsChatTranslationEnabled(newEnabled);
+                      
+                      // Automatically enable translation with Italian when toggle is turned on
+                      if (newEnabled) {
+                        const conversationKey = getCurrentConversationKey();
+                        const existingSettings = translationSettings[conversationKey];
+                        
+                        // Only initialize if not already set
+                        if (!existingSettings) {
+                          const newStates = {};
+                          messages.forEach(msg => {
+                            newStates[msg.id] = 'translated';
+                          });
+                          
+                          setTranslationSettings(prev => ({
+                            ...prev,
+                            [conversationKey]: {
+                              language: 'Italian',
+                              messageStates: newStates
+                            }
+                          }));
+                        }
+                      } else {
+                        // Clear translation settings for this conversation when disabled
+                        const conversationKey = getCurrentConversationKey();
+                        setTranslationSettings(prev => {
+                          const updated = { ...prev };
+                          delete updated[conversationKey];
+                          return updated;
+                        });
+                      }
+                    }}
                     className={`relative w-[40px] h-[24px] rounded-full transition-colors duration-200 ${
                       isChatTranslationEnabled ? 'bg-[#111318]' : 'bg-[#e9eaec]'
                     }`}
@@ -1595,12 +1724,15 @@ export default function ChatInterface({
                     isChatTranslationEnabled ? 'max-h-[48px] opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
-                  <div className="flex items-center min-h-[48px] px-[16px] gap-[16px]">
+                  <button
+                    onClick={() => setTranslationLanguageModalOpen(true)}
+                    className="w-full flex items-center min-h-[48px] px-[16px] gap-[16px] hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                  >
                     <LanguageIcon size={24} className="text-[#111318] flex-shrink-0" />
                     <span className="text-[14px] leading-[20px] font-normal text-[#111318] tracking-[-0.01px]">
                       Translation language
                     </span>
-                  </div>
+                  </button>
                 </div>
                 
                 {/* End Chat Row */}
@@ -1852,7 +1984,8 @@ export default function ChatInterface({
                 
                 // Check if message contains only emojis (no other text)
                 const emojiRegex = /^[\p{Emoji}\s]+$/u;
-                const isEmojiOnly = emojiRegex.test(message.text.trim()) && message.text.trim().length > 0;
+                const displayText = getMessageText(message);
+                const isEmojiOnly = displayText && emojiRegex.test(displayText.trim()) && displayText.trim().length > 0;
 
                 // Check if this message should be grouped with previous message
                 const prevMessage = index > 0 ? messages[index - 1] : null;
@@ -1928,7 +2061,7 @@ export default function ChatInterface({
                     style={{
                       transformOrigin: isAgent ? 'right bottom' : 'left bottom'
                     }}
-                    onMouseEnter={() => isDeletable && !isDeleted && setHoveredMessageId(message.id)}
+                    onMouseEnter={() => setHoveredMessageId(message.id)}
                     onMouseLeave={() => setHoveredMessageId(null)}
                   >
                     {/* Chat Header with Avatar and Name - Only show if not grouped with previous */}
@@ -2057,7 +2190,7 @@ export default function ChatInterface({
                                 ? 'text-[32px] leading-[40px] font-bold' 
                                 : 'text-[14px] leading-[20px] font-normal'
                             } text-[#191919] tracking-[-0.01px] break-words`}>
-                              {message.text}
+                              {getMessageText(message)}
                             </p>
                           </div>
                         </div>
@@ -2081,12 +2214,33 @@ export default function ChatInterface({
                                 <span className="text-[#d91400]">{isNote ? 'Note deleted' : 'Message deleted'}</span>
                               </span>
                             ) : (
-                              <TimestampTooltip 
-                                relativeTime={message.timestamp}
-                                is12Hour={conversationData.contactInfo.name.includes('Edeka')}
-                              >
-                                {message.timestamp}
-                              </TimestampTooltip>
+                              <>
+                                <TimestampTooltip 
+                                  relativeTime={message.timestamp}
+                                  is12Hour={conversationData.contactInfo.name.includes('Edeka')}
+                                >
+                                  {message.timestamp}
+                                </TimestampTooltip>
+                                {/* Translation info - show on hover when translation is enabled and message has text */}
+                                {isChatTranslationEnabled && translationLanguage && message.text && hoveredMessageId === message.id && (
+                                  <>
+                                    {' ∙ '}
+                                    <span className="text-[#606060]">
+                                      Translated to {translationLanguage}
+                                    </span>
+                                    {' ∙ '}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleMessageTranslation(message.id);
+                                      }}
+                                      className="font-semibold text-[#111318] hover:underline"
+                                    >
+                                      {messageTranslationStates[message.id] === 'original' ? 'View translation' : 'View original'}
+                                    </button>
+                                  </>
+                                )}
+                              </>
                             )}
                           </span>
                         </div>
@@ -2159,6 +2313,15 @@ export default function ChatInterface({
 
                   {/* Primary Actions Row */}
                   <div className="flex items-center justify-between relative" ref={composerSwitchRef}>
+                    {/* Translation Indicator - Right side, vertically centered with mode switcher */}
+                    {isChatTranslationEnabled && translationLanguage && composerMode === 'chat' && (
+                      <div className="absolute left-0 right-0 top-0 flex items-center justify-end gap-[4px] h-[32px] pointer-events-none">
+                        <TranslationIcon size={12} className="text-[#00855f]" />
+                        <span className="text-[12px] leading-[18px] font-normal text-[#51545d] tracking-[-0.01px]">
+                          Message will be translated
+                        </span>
+                      </div>
+                    )}
                     {/* Composer Switch Popover - Positioned above toggle button */}
                     {isComposerSwitchOpen && (
                       <div className="absolute left-0 bottom-[40px] w-[240px] bg-white rounded-[8px] shadow-[0px_4px_12px_0px_rgba(17,19,24,0.15)] py-[8px] z-[100] animate-in fade-in slide-in-from-bottom-2 duration-150">
@@ -2401,6 +2564,14 @@ export default function ChatInterface({
         isOpen={deleteModalOpen}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
+      />
+      
+      {/* Translation Language Modal */}
+      <TranslationLanguageModal
+        isOpen={translationLanguageModalOpen}
+        onClose={() => setTranslationLanguageModalOpen(false)}
+        onApply={handleApplyTranslation}
+        currentLanguage={translationLanguage || 'Italian'}
       />
     </div>
   );
