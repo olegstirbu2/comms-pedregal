@@ -15,12 +15,17 @@ import {
   ArrowTrendingUpIcon,
   PeopleGroupLineIcon,
   ListIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  OperationsIcon
 } from './icons/NavIcons';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => void }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const pathname = usePathname();
+  const isOperationsActive = pathname?.startsWith('/operations');
 
   return (
     <div 
@@ -132,26 +137,26 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
               {/* Inbox Sub-menu */}
               {isExpanded && isInboxOpen && (
                 <div className="flex flex-col py-[4px]">
-                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                  <Link href="/" className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
                     <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">All</span>
-                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">6</span>
-                  </button>
-                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                    <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">4</span>
+                  </Link>
+                  <Link href="/" className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
                     <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Open</span>
                     <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">2</span>
-                  </button>
-                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                  </Link>
+                  <Link href="/" className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
                     <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Proactive</span>
                     <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">1</span>
-                  </button>
-                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                  </Link>
+                  <Link href="/" className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
                     <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Snoozed</span>
                     <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">2</span>
-                  </button>
-                  <button className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
+                  </Link>
+                  <Link href="/" className="flex items-center justify-between px-[16px] h-[36px] hover:bg-white/5 transition-colors">
                     <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px]">Follow-ups</span>
                     <span className="text-[#d3d6d9] text-[12px] leading-[18px] tracking-[-0.01px]">1</span>
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -191,6 +196,23 @@ export default function Navbar({ onCaseInboxClick }: { onCaseInboxClick?: () => 
                 <span className="text-white text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px]">Performance</span>
               )}
             </button>
+
+            {/* Operations */}
+            <Link
+              href="/operations"
+              className={`flex items-center rounded-[12px] transition-colors ${
+                isOperationsActive 
+                  ? 'bg-[#1c2a4a]' 
+                  : 'hover:bg-white/5'
+              } ${
+                isExpanded ? 'px-[8px] min-h-[40px]' : 'justify-center w-[40px] h-[40px]'
+              }`}
+            >
+              <OperationsIcon size={24} className={`shrink-0 ${isOperationsActive ? 'text-white' : 'text-[#d3d6d9]'}`} />
+              {isExpanded && (
+                <span className={`text-[12px] leading-[18px] tracking-[-0.01px] ml-[8px] ${isOperationsActive ? 'text-white font-semibold' : 'text-white'}`}>Operations</span>
+              )}
+            </Link>
           </div>
         </div>
 
