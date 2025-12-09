@@ -823,6 +823,7 @@ export default function ChatInterface({
   
   // GIF picker state
   const [gifModalOpen, setGifModalOpen] = useState(false);
+  const [pendingGif, setPendingGif] = useState(null); // { url: string }
   
   // Template picker state
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
@@ -1135,8 +1136,8 @@ export default function ChatInterface({
   }, [messages]);
 
   const handleSendMessage = () => {
-    // Allow sending if there's text OR pending images
-    if (!inputValue.trim() && pendingImages.length === 0) return;
+    // Allow sending if there's text OR pending images OR pending GIF
+    if (!inputValue.trim() && pendingImages.length === 0 && !pendingGif) return;
     // Don't send if any image is still uploading
     if (pendingImages.some(img => img.isUploading)) return;
 
@@ -1152,12 +1153,14 @@ export default function ChatInterface({
       avatarUrl: 'https://i.pravatar.cc/150?img=47',
       isNote: composerMode === 'note', // Tag as note if in note mode
       imageUrls: imageUrls.length > 0 ? imageUrls : null, // Include images array if present
+      gifUrl: pendingGif ? pendingGif.url : null, // Include GIF if present
     };
 
     // Update messages first
     setMessages(prev => [...prev, newMessage]);
     setInputValue('');
     setPendingImages([]); // Clear pending images after sending
+    setPendingGif(null); // Clear pending GIF after sending
     
     // Trigger animation on next frame to ensure DOM is ready
     requestAnimationFrame(() => {
@@ -1248,31 +1251,10 @@ export default function ChatInterface({
 
   // Handle GIF selection from modal
   const handleGifSelect = useCallback((gifUrl) => {
-    const newMessage = {
-      id: Date.now(),
-      sender: 'agent',
-      senderName: 'Ana J.',
-      text: '', // GIF-only message
-      timestamp: 'Just now',
-      avatarUrl: 'https://i.pravatar.cc/150?img=47',
-      isNote: composerMode === 'note',
-      gifUrl: gifUrl,
-    };
-
-    setMessages(prev => [...prev, newMessage]);
+    setPendingGif({ url: gifUrl });
     setGifModalOpen(false);
-    
-    // Trigger animation
-    requestAnimationFrame(() => {
-      setNewMessageId(newMessage.id);
-      inputRef.current?.focus();
-    });
-    
-    // Clear the new message flag after animation completes
-    setTimeout(() => {
-      setNewMessageId(null);
-    }, 500);
-  }, [composerMode]);
+    inputRef.current?.focus();
+  }, []);
 
   // Handle template selection from modal
   const handleTemplateSelect = useCallback((template) => {
@@ -2088,7 +2070,7 @@ export default function ChatInterface({
                     )}
 
                     {/* Message Content Wrapper */}
-                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'w-[368px]'}`}>
+                    <div className={`flex flex-col ${isAgent ? 'items-end pr-[40px]' : 'items-start pl-[40px]'} ${isEmojiOnly && !message.imageUrls?.length && !message.gifUrl ? '' : 'max-w-[368px]'}`}>
                       {/* GIF (if present) */}
                       {message.gifUrl && (
                         <div className="flex gap-[4px] items-center">
@@ -2183,13 +2165,13 @@ export default function ChatInterface({
                           
                           <div
                             className={`${isEmojiOnly ? 'px-[20px]' : 'px-[20px]'} py-[16px] ${getBubbleBackground()} ${getBubbleRadius()}`}
-                            style={{ width: isEmojiOnly ? 'auto' : '328px' }}
+                            style={{ maxWidth: isEmojiOnly ? 'auto' : '328px' }}
                           >
                             <p className={`${
                               isEmojiOnly 
                                 ? 'text-[32px] leading-[40px] font-bold' 
                                 : 'text-[14px] leading-[20px] font-normal'
-                            } text-[#191919] tracking-[-0.01px] break-words`}>
+                            } text-[#191919] tracking-[-0.01px] break-words whitespace-pre-wrap`}>
                               {getMessageText(message)}
                             </p>
                           </div>
@@ -2268,6 +2250,36 @@ export default function ChatInterface({
             <div className={`p-[16px] flex flex-col gap-[16px] rounded-[15px] ${
               composerMode === 'note' ? 'bg-[#fff6d4]' : 'bg-white'
             }`}>
+              {/* GIF Preview in Composer */}
+              {pendingGif && (
+                <div className="flex gap-[8px] items-start flex-wrap">
+                  <div className="flex flex-col gap-[8px] items-start">
+                    <div 
+                      className="relative w-[64px] h-[64px] rounded-[12px]"
+                      onMouseEnter={() => setHoveredImageId('gif')}
+                      onMouseLeave={() => setHoveredImageId(null)}
+                    >
+                      {/* GIF thumbnail */}
+                      <img 
+                        src={pendingGif.url} 
+                        alt="Selected GIF"
+                        className="w-full h-full object-cover rounded-[12px]"
+                      />
+                      {/* Delete button on hover - centered */}
+                      {hoveredImageId === 'gif' && (
+                        <button
+                          onClick={() => setPendingGif(null)}
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32px] h-[32px] bg-white rounded-[8px] flex items-center justify-center shadow-[0px_1px_4px_0px_rgba(17,19,24,0.15)] hover:bg-[#f6f7f8] transition-colors"
+                          aria-label="Remove GIF"
+                        >
+                          <TrashLineIcon size={16} className="text-black" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Image Preview in Composer (horizontal row for multiple images) */}
               {pendingImages.length > 0 && (
                 <div className="flex gap-[8px] items-start flex-wrap">
