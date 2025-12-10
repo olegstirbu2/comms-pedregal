@@ -97,3 +97,4 @@ export function hasTranslation(text: string): boolean {
   return TRANSLATIONS.hasOwnProperty(text);
 }
 
+

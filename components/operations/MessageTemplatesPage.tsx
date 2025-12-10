@@ -11,6 +11,8 @@ import {
   type SortColumn,
   type SortDirection,
 } from '@/lib/operations-template-data';
+import EditTemplateSidesheet from './EditTemplateSidesheet';
+import CreateTemplateSidesheet from './CreateTemplateSidesheet';
 
 // Tab types
 type TabType = 'message-templates' | 'email-templates' | 'email-addresses' | 'team-management';
@@ -378,19 +380,25 @@ export default function MessageTemplatesPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [currentPage, setCurrentPage] = useState(1);
   
+  // Sidesheet state
+  const [selectedTemplate, setSelectedTemplate] = useState<OperationsTemplate | null>(null);
+  const [isSidesheetOpen, setIsSidesheetOpen] = useState(false);
+  const [isCreateSidesheetOpen, setIsCreateSidesheetOpen] = useState(false);
+  const [templates, setTemplates] = useState<OperationsTemplate[]>(OPERATIONS_TEMPLATES);
+  
   const itemsPerPage = 10;
 
   // Filter and sort templates
   const filteredTemplates = useMemo(() => {
-    const templates = filterTemplates(OPERATIONS_TEMPLATES, {
+    const filtered = filterTemplates(templates, {
       category: categoryFilter,
       country: countryFilter,
       language: languageFilter,
       search: searchQuery,
     });
     
-    return sortTemplates(templates, sortColumn, sortDirection);
-  }, [categoryFilter, countryFilter, languageFilter, searchQuery, sortColumn, sortDirection]);
+    return sortTemplates(filtered, sortColumn, sortDirection);
+  }, [templates, categoryFilter, countryFilter, languageFilter, searchQuery, sortColumn, sortDirection]);
 
   // Pagination
   const totalPages = Math.ceil(filteredTemplates.length / itemsPerPage);
@@ -413,6 +421,38 @@ export default function MessageTemplatesPage() {
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  // Sidesheet handlers
+  const handleRowClick = (template: OperationsTemplate) => {
+    setSelectedTemplate(template);
+    setIsSidesheetOpen(true);
+  };
+
+  const handleSidesheetClose = () => {
+    setIsSidesheetOpen(false);
+    setTimeout(() => setSelectedTemplate(null), 200); // Clear after animation
+  };
+
+  const handleTemplateSave = (updatedTemplate: OperationsTemplate) => {
+    setTemplates(prev => 
+      prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t)
+    );
+  };
+
+  const handleTemplateDelete = (templateId: string) => {
+    setTemplates(prev => prev.filter(t => t.id !== templateId));
+  };
+
+  const handleTemplateCreate = (newTemplateData: Omit<OperationsTemplate, 'id' | 'owner' | 'creationDate' | 'updateDate'>) => {
+    const newTemplate: OperationsTemplate = {
+      ...newTemplateData,
+      id: String(templates.length + 1),
+      owner: 'Current User',
+      creationDate: new Date().toLocaleDateString('en-GB').replace(/\//g, '.'),
+      updateDate: new Date().toLocaleDateString('en-GB').replace(/\//g, '.'),
+    };
+    setTemplates(prev => [newTemplate, ...prev]);
   };
 
   // Column widths matching Figma
@@ -448,7 +488,10 @@ export default function MessageTemplatesPage() {
             <h1 className="text-[32px] font-bold text-[#111318] leading-[40px] tracking-[-0.01px]">
               Message Templates
             </h1>
-            <button className="h-10 px-3 bg-[#00855f] text-white rounded-lg text-[14px] font-bold leading-[20px] tracking-[-0.01px] hover:bg-[#006f4f] transition-colors">
+            <button 
+              onClick={() => setIsCreateSidesheetOpen(true)}
+              className="h-10 px-3 bg-[#00855f] text-white rounded-lg text-[14px] font-bold leading-[20px] tracking-[-0.01px] hover:bg-[#006f4f] transition-colors"
+            >
               Create template
             </button>
           </div>
@@ -599,6 +642,7 @@ export default function MessageTemplatesPage() {
                 paginatedTemplates.map((template) => (
                   <div
                     key={template.id}
+                    onClick={() => handleRowClick(template)}
                     className="grid border-b border-[#e9eaec] hover:bg-[#f6f7f8] transition-colors cursor-pointer"
                     style={{ gridTemplateColumns: gridTemplate }}
                   >
@@ -660,6 +704,22 @@ export default function MessageTemplatesPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Template Sidesheet */}
+      <EditTemplateSidesheet
+        isOpen={isSidesheetOpen}
+        template={selectedTemplate}
+        onClose={handleSidesheetClose}
+        onSave={handleTemplateSave}
+        onDelete={handleTemplateDelete}
+      />
+
+      {/* Create Template Sidesheet */}
+      <CreateTemplateSidesheet
+        isOpen={isCreateSidesheetOpen}
+        onClose={() => setIsCreateSidesheetOpen(false)}
+        onCreate={handleTemplateCreate}
+      />
     </div>
   );
 }
