@@ -155,7 +155,7 @@ function FilterDropdown({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 h-10 px-4 bg-white border border-[#d3d6d9] rounded-full hover:border-[#111318] transition-colors"
+        className="flex items-center gap-3 h-10 px-4 bg-white border border-[#d3d6d9] rounded-[8px] hover:border-[#111318] transition-colors"
       >
         <div className="flex items-center gap-1">
           <span className="text-[14px] text-[#51545d] leading-[20px] tracking-[-0.01px]">{label}:</span>
@@ -494,7 +494,7 @@ export default function MessageTemplatesPage() {
           
           {/* Search */}
           <div className="w-[343px]">
-            <div className="flex items-center gap-3 h-10 px-4 bg-white border border-[#d3d6d9] rounded-full">
+            <div className="flex items-center gap-3 h-10 px-4 bg-white border border-[#d3d6d9] rounded-[8px]">
               <SearchIcon className="w-6 h-6 text-[#191919]" />
               <input
                 type="text"
