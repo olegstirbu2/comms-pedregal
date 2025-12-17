@@ -5,6 +5,7 @@ import {
   OPERATIONS_TEMPLATES,
   CATEGORIES,
   COUNTRIES,
+  LANGUAGES,
   filterTemplates,
   sortTemplates,
   type OperationsTemplate,
@@ -13,6 +14,7 @@ import {
 } from '@/lib/operations-template-data';
 import EditTemplateSidesheet from './EditTemplateSidesheet';
 import CreateTemplateSidesheet from './CreateTemplateSidesheet';
+import MultiSelectCombobox from './MultiSelectCombobox';
 
 // Tab types
 type TabType = 'message-templates' | 'email-templates' | 'email-addresses' | 'team-management';
@@ -24,8 +26,7 @@ const TABS: { id: TabType; label: string }[] = [
   { id: 'team-management', label: 'Team Management' },
 ];
 
-// Language display options (all templates are English now)
-const LANGUAGE_OPTIONS = ['All', 'English'] as const;
+// Language options are now imported from data file
 
 // Search Icon Component
 function SearchIcon({ className }: { className?: string }) {
@@ -372,9 +373,9 @@ function Pagination({
 
 export default function MessageTemplatesPage() {
   const [activeTab, setActiveTab] = useState<TabType>('message-templates');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [countryFilter, setCountryFilter] = useState('All');
-  const [languageFilter, setLanguageFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState<string[]>(CATEGORIES);
+  const [countryFilter, setCountryFilter] = useState<string[]>(COUNTRIES);
+  const [languageFilter, setLanguageFilter] = useState<string[]>(LANGUAGES);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<SortColumn>('title');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -386,7 +387,7 @@ export default function MessageTemplatesPage() {
   const [isCreateSidesheetOpen, setIsCreateSidesheetOpen] = useState(false);
   const [templates, setTemplates] = useState<OperationsTemplate[]>(OPERATIONS_TEMPLATES);
   
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   // Filter and sort templates
   const filteredTemplates = useMemo(() => {
@@ -444,19 +445,19 @@ export default function MessageTemplatesPage() {
     setTemplates(prev => prev.filter(t => t.id !== templateId));
   };
 
-  const handleTemplateCreate = (newTemplateData: Omit<OperationsTemplate, 'id' | 'owner' | 'creationDate' | 'updateDate'>) => {
+  const handleTemplateCreate = (newTemplateData: Omit<OperationsTemplate, 'id' | 'owner' | 'lastEditedBy' | 'creationDate' | 'updateDate'>) => {
     const newTemplate: OperationsTemplate = {
       ...newTemplateData,
       id: String(templates.length + 1),
       owner: 'Current User',
+      lastEditedBy: 'Current User',
       creationDate: new Date().toLocaleDateString('en-GB').replace(/\//g, '.'),
       updateDate: new Date().toLocaleDateString('en-GB').replace(/\//g, '.'),
     };
     setTemplates(prev => [newTemplate, ...prev]);
   };
 
-  // Column widths matching Figma
-  // Grid template for consistent column widths
+  // Column widths - reordered: Template | Country | Category | Language | Last Edited By | Creation Date | Update Date
   const gridTemplate = '1fr 140px 140px 100px 140px 130px 130px';
 
   return (
@@ -488,12 +489,23 @@ export default function MessageTemplatesPage() {
             <h1 className="text-[32px] font-bold text-[#111318] leading-[40px] tracking-[-0.01px]">
               Message Templates
             </h1>
-            <button 
-              onClick={() => setIsCreateSidesheetOpen(true)}
-              className="h-10 px-3 bg-[#00855f] text-white rounded-lg text-[14px] font-bold leading-[20px] tracking-[-0.01px] hover:bg-[#006f4f] transition-colors"
-            >
-              Create template
-            </button>
+            <div className="flex items-center gap-[8px]">
+              {/* Export Table Button */}
+              <button 
+                onClick={() => {/* TODO: Implement CSV export */}}
+                className="h-[40px] px-[12px] py-[2px] bg-white border border-[#d3d6d9] text-[#111318] rounded-[8px] text-[14px] font-bold leading-[20px] tracking-[-0.01px] hover:bg-[#f6f7f8] transition-colors"
+              >
+                Export Table
+              </button>
+              
+              {/* Create Template Button */}
+              <button 
+                onClick={() => setIsCreateSidesheetOpen(true)}
+                className="h-[40px] px-[12px] py-[2px] bg-[#00855f] text-white rounded-[8px] text-[14px] font-bold leading-[20px] tracking-[-0.01px] hover:bg-[#006f4f] transition-colors"
+              >
+                Create template
+              </button>
+            </div>
           </div>
           <p className="text-[14px] text-[#51545d] leading-[20px] tracking-[-0.01px] max-w-[632px]">
             Manage reusable message templates for agents across countries and languages.
@@ -506,16 +518,7 @@ export default function MessageTemplatesPage() {
         {/* Filters */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
-            <FilterDropdown
-              label="Category"
-              value={categoryFilter}
-              options={CATEGORIES}
-              onChange={(value) => {
-                setCategoryFilter(value);
-                setCurrentPage(1);
-              }}
-            />
-            <FilterDropdown
+            <MultiSelectCombobox
               label="Country"
               value={countryFilter}
               options={COUNTRIES}
@@ -523,15 +526,28 @@ export default function MessageTemplatesPage() {
                 setCountryFilter(value);
                 setCurrentPage(1);
               }}
+              placeholder="All countries"
+              showFlags={true}
             />
-            <FilterDropdown
+            <MultiSelectCombobox
+              label="Category"
+              value={categoryFilter}
+              options={CATEGORIES}
+              onChange={(value) => {
+                setCategoryFilter(value);
+                setCurrentPage(1);
+              }}
+              placeholder="All categories"
+            />
+            <MultiSelectCombobox
               label="Language"
               value={languageFilter}
-              options={LANGUAGE_OPTIONS}
+              options={LANGUAGES}
               onChange={(value) => {
                 setLanguageFilter(value);
                 setCurrentPage(1);
               }}
+              placeholder="All languages"
             />
           </div>
           
@@ -572,16 +588,6 @@ export default function MessageTemplatesPage() {
               </TableHeaderCell>
               <TableHeaderCell
                 sortable
-                sortColumn="category"
-                currentSortColumn={sortColumn}
-                currentSortDirection={sortDirection}
-                onSort={handleSort}
-                align="right"
-              >
-                Category
-              </TableHeaderCell>
-              <TableHeaderCell
-                sortable
                 sortColumn="country"
                 currentSortColumn={sortColumn}
                 currentSortDirection={sortDirection}
@@ -589,6 +595,16 @@ export default function MessageTemplatesPage() {
                 align="right"
               >
                 Country
+              </TableHeaderCell>
+              <TableHeaderCell
+                sortable
+                sortColumn="category"
+                currentSortColumn={sortColumn}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+                align="right"
+              >
+                Category
               </TableHeaderCell>
               <TableHeaderCell
                 sortable
@@ -602,13 +618,13 @@ export default function MessageTemplatesPage() {
               </TableHeaderCell>
               <TableHeaderCell
                 sortable
-                sortColumn="owner"
+                sortColumn="lastEditedBy"
                 currentSortColumn={sortColumn}
                 currentSortDirection={sortDirection}
                 onSort={handleSort}
                 align="right"
               >
-                Owner
+                Last Edited By
               </TableHeaderCell>
               <TableHeaderCell
                 sortable
@@ -648,41 +664,41 @@ export default function MessageTemplatesPage() {
                   >
                     <TableBodyCell>
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-[12px] font-semibold text-[#191919] leading-[18px] tracking-[-0.01px] truncate">
+                        <span className="text-[12px] font-semibold text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3">
                           {template.title}
                         </span>
-                        <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-1">
+                        <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3">
                           {template.content}
                         </span>
                       </div>
                     </TableBodyCell>
                     <TableBodyCell align="right">
-                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px]">
-                        {template.category}
+                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3 text-right">
+                        {template.country.join(', ')}
                       </span>
                     </TableBodyCell>
                     <TableBodyCell align="right">
-                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px]">
-                        {template.country}
+                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3 text-right">
+                        {template.category.join(', ')}
                       </span>
                     </TableBodyCell>
                     <TableBodyCell align="right">
-                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px]">
-                        {template.language}
+                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3 text-right">
+                        {template.language.join(', ')}
                       </span>
                     </TableBodyCell>
                     <TableBodyCell align="right">
-                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px]">
-                        {template.owner}
+                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3 text-right">
+                        {template.lastEditedBy}
                       </span>
                     </TableBodyCell>
                     <TableBodyCell align="right">
-                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px]">
+                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3 text-right">
                         {template.creationDate}
                       </span>
                     </TableBodyCell>
                     <TableBodyCell align="right">
-                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px]">
+                      <span className="text-[12px] text-[#191919] leading-[18px] tracking-[-0.01px] line-clamp-3 text-right">
                         {template.updateDate}
                       </span>
                     </TableBodyCell>

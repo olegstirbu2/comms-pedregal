@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { CATEGORIES, COUNTRIES, type OperationsTemplate } from '@/lib/operations-template-data';
+import { CATEGORIES, COUNTRIES, LANGUAGES, type OperationsTemplate } from '@/lib/operations-template-data';
+import MultiSelectCombobox from './MultiSelectCombobox';
 
 interface CreateTemplateSidesheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (newTemplate: Omit<OperationsTemplate, 'id' | 'owner' | 'creationDate' | 'updateDate'>) => void;
+  onCreate: (newTemplate: Omit<OperationsTemplate, 'id' | 'owner' | 'lastEditedBy' | 'creationDate' | 'updateDate'>) => void;
 }
 
 // Close Icon Component
@@ -171,8 +172,6 @@ function CustomDropdown({
   );
 }
 
-const LANGUAGE_OPTIONS = ['All', 'ENG', 'FIN', 'SPA', 'GER'] as const;
-
 export default function CreateTemplateSidesheet({
   isOpen,
   onClose,
@@ -181,9 +180,9 @@ export default function CreateTemplateSidesheet({
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    category: '',
-    country: '',
-    language: '',
+    category: [] as string[],
+    country: [] as string[],
+    language: [] as string[],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -193,9 +192,9 @@ export default function CreateTemplateSidesheet({
       setFormData({
         title: '',
         content: '',
-        category: '',
-        country: '',
-        language: '',
+        category: [],
+        country: [],
+        language: [],
       });
       setErrors({});
     }
@@ -227,16 +226,16 @@ export default function CreateTemplateSidesheet({
       newErrors.content = 'Message must be 500 characters or less';
     }
 
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
+    if (formData.category.length === 0) {
+      newErrors.category = 'At least one category must be selected';
     }
 
-    if (!formData.country) {
-      newErrors.country = 'Country is required';
+    if (formData.country.length === 0) {
+      newErrors.country = 'At least one country must be selected';
     }
 
-    if (!formData.language) {
-      newErrors.language = 'Language is required';
+    if (formData.language.length === 0) {
+      newErrors.language = 'At least one language must be selected';
     }
 
     setErrors(newErrors);
@@ -266,9 +265,9 @@ export default function CreateTemplateSidesheet({
 
   const isFormValid = formData.title.trim() && 
                       formData.content.trim() && 
-                      formData.category && 
-                      formData.country && 
-                      formData.language;
+                      formData.category.length > 0 && 
+                      formData.country.length > 0 && 
+                      formData.language.length > 0;
 
   return (
     <>
@@ -348,37 +347,60 @@ export default function CreateTemplateSidesheet({
               </div>
             </div>
 
-            {/* Dropdowns Section */}
+            {/* Template Settings Section */}
             <div className="flex flex-col gap-[16px]">
-              {/* Category Dropdown */}
-              <CustomDropdown
-                label="Category"
-                value={formData.category}
-                options={CATEGORIES.filter(c => c !== 'All')}
-                placeholder="Choose category"
-                onChange={(value) => setFormData({ ...formData, category: value })}
-                error={errors.category}
-              />
+              {/* Section Header */}
+              <h2 className="text-[14px] font-semibold leading-[20px] text-[#111318] tracking-[-0.01px]">
+                Template Settings
+              </h2>
+              
+              <div className="flex flex-col gap-[24px]">
+                {/* Country Multi-Select */}
+                <div className="flex flex-col gap-[8px]">
+                  <MultiSelectCombobox
+                    label="Country"
+                    value={formData.country}
+                    options={COUNTRIES}
+                    placeholder="Select one or multiple countries"
+                    variant="template"
+                    showFlags={true}
+                    onChange={(value) => setFormData({ ...formData, country: value })}
+                  />
+                  {errors.country && (
+                    <p className="text-[12px] text-[#d91400] leading-[18px]">{errors.country}</p>
+                  )}
+                </div>
 
-              {/* Country Dropdown */}
-              <CustomDropdown
-                label="Country"
-                value={formData.country}
-                options={COUNTRIES.filter(c => c !== 'All')}
-                placeholder="Choose country"
-                onChange={(value) => setFormData({ ...formData, country: value })}
-                error={errors.country}
-              />
+                {/* Category Multi-Select */}
+                <div className="flex flex-col gap-[8px]">
+                  <MultiSelectCombobox
+                    label="Category"
+                    value={formData.category}
+                    options={CATEGORIES}
+                    placeholder="Select one or multiple categories"
+                    variant="template"
+                    onChange={(value) => setFormData({ ...formData, category: value })}
+                  />
+                  {errors.category && (
+                    <p className="text-[12px] text-[#d91400] leading-[18px]">{errors.category}</p>
+                  )}
+                </div>
 
-              {/* Language Dropdown */}
-              <CustomDropdown
-                label="Language"
-                value={formData.language}
-                options={LANGUAGE_OPTIONS.filter(l => l !== 'All')}
-                placeholder="Choose language"
-                onChange={(value) => setFormData({ ...formData, language: value })}
-                error={errors.language}
-              />
+                {/* Language Multi-Select */}
+                <div className="flex flex-col gap-[8px]">
+                  <MultiSelectCombobox
+                    label="Language"
+                    value={formData.language}
+                    options={LANGUAGES}
+                    placeholder="Select one or multiple languages"
+                    variant="template"
+                    onChange={(value) => setFormData({ ...formData, language: value })}
+                  />
+                  {errors.language && (
+                    <p className="text-[12px] text-[#d91400] leading-[18px]">{errors.language}</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -429,4 +451,5 @@ export default function CreateTemplateSidesheet({
     </>
   );
 }
+
 
