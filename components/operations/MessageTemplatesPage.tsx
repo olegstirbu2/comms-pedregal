@@ -373,9 +373,9 @@ function Pagination({
 
 export default function MessageTemplatesPage() {
   const [activeTab, setActiveTab] = useState<TabType>('message-templates');
-  const [categoryFilter, setCategoryFilter] = useState<string[]>(CATEGORIES);
-  const [countryFilter, setCountryFilter] = useState<string[]>(COUNTRIES);
-  const [languageFilter, setLanguageFilter] = useState<string[]>(LANGUAGES);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([...CATEGORIES]);
+  const [countryFilter, setCountryFilter] = useState<string[]>([...COUNTRIES]);
+  const [languageFilter, setLanguageFilter] = useState<string[]>([...LANGUAGES]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<SortColumn>('title');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
